@@ -59,30 +59,30 @@ class NormalFormGame_2P(object):
             )
 
         self.players = \
-            [Player_NormalFormGame_2P(self.matrices[i]) for i in player_indices]
+            [Player_NormalFormGame_2P(self.matrices[i]) for i in self.player_indices]
 
 
-def br_corr(mixed_strategy, payoff_matrix):
+def br_corr(mixed_action, payoff_matrix):
     """
     Best response correspondence in pure actions.
 
     """
-    payoff_vec = np.dot(payoff_matrix, mixed_strategy)
+    payoff_vec = np.dot(payoff_matrix, mixed_action)
     return np.where(payoff_vec == payoff_vec.max())[0]
 
 
-def _random_choice(actions):
+def random_choice(actions):
     if len(actions) == 1:
         return actions[0]
     else:
         return np.random.choice(actions)
 
 
-def _pure2mixed(num_actions, action):
+def pure2mixed(num_actions, action):
     """
-    Convert a pure strategy to the corresponding mixed strategy.
+    Convert a pure action to the corresponding mixed action.
 
     """
-    mixed_strategy = np.zeros(num_actions)
-    mixed_strategy[action] = 1
-    return mixed_strategy
+    mixed_action = np.zeros(num_actions)
+    mixed_action[action] = 1
+    return mixed_action
