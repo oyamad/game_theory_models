@@ -58,8 +58,10 @@ class NormalFormGame_2P(object):
                 'the game must be represented by a bimatrix or a square matrix'
             )
 
-        self.players = \
-            [Player_NormalFormGame_2P(self.matrices[i]) for i in self.player_indices]
+        self.players = [
+            Player_NormalFormGame_2P(self.matrices[i])
+            for i in self.player_indices
+        ]
 
 
 def br_corr(mixed_action, payoff_matrix):
