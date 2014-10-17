@@ -1,4 +1,4 @@
-game_tools
+game_theory_models
 ==========
 
-Tools for Game Theory
+Code for game theory modeling
