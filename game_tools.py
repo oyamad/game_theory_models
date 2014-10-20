@@ -59,8 +59,7 @@ class NormalFormGame_2P(object):
             )
 
         self.players = [
-            Player_2P(self.matrices[i])
-            for i in self.player_indices
+            Player_2P(self.matrices[i]) for i in self.player_indices
         ]
 
 
