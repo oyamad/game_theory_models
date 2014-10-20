@@ -11,7 +11,7 @@ from __future__ import division
 import numpy as np
 
 
-class Player_NormalFormGame_2P(object):
+class Player_2P(object):
     """
     Class representing a player in a two-player normal form game.
 
@@ -26,7 +26,7 @@ class Player_NormalFormGame_2P(object):
 
         self.current_action = init_action
 
-    def best_response(self, mixed_strategy,
+    def best_response(self, opponent_action,
                       tie_breaking=True, payoff_perturbations=None):
         pass
 
@@ -59,7 +59,7 @@ class NormalFormGame_2P(object):
             )
 
         self.players = [
-            Player_NormalFormGame_2P(self.matrices[i])
+            Player_2P(self.matrices[i])
             for i in self.player_indices
         ]
 
