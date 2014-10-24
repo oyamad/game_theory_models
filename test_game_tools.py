@@ -25,7 +25,7 @@ class TestPlayer_2P:
 
     def test_best_response_against_pure(self):
         """Best response against a pure action"""
-        eq_(self.player.best_response(0), 0)
+        eq_(self.player.best_response(1), 1)
 
     def test_best_response_against_mixed(self):
         """Best response against a mixed action"""
