@@ -15,6 +15,37 @@ class Player_2P(object):
     """
     Class representing a player in a two-player normal form game.
 
+    Parameters
+    ----------
+    payoff_matrix : array_like(float)
+        A 2-dimensional ndarray representing a payoff matrix.
+
+    init_action : int?, optional(default=None)
+        (To be written)
+
+    Attributes
+    ----------
+    payoff_matrix : ndarray(float)
+        The payoff matrix of the game converted into ndarray.
+
+    n : long
+        The number of rows of payoff_matrix.
+
+    m : long
+        The number of columns of payoff_matrix.
+
+    current_action : int?
+        (To be written)
+
+    Examples
+    --------
+    >>> P = game_tools.Player_2P([[4,0], [3,2]])
+    >>> P
+    Player_2P:
+        payoff_matrix: array([[4,0],[3,2]])
+        n: 2L
+        m: 2L
+
     """
     def __init__(self, payoff_matrix, init_action=None):
         self.payoff_matrix = np.asarray(payoff_matrix)
@@ -28,6 +59,16 @@ class Player_2P(object):
 
     def best_response(self, opponent_action,
                       tie_breaking=True, payoff_perturbations=None):
+    """
+    Return the best response actions to the given opponent action.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
         br_actions = br_corr(opponent_action, self.payoff_matrix)
         if tie_breaking:
             return random_choice(br_actions)
@@ -35,12 +76,31 @@ class Player_2P(object):
             return br_actions
     
     def random_choice(self):
+    """
+    Return a pure action chosen at random from the player's actions.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
         return random_choice(range(self.n))
 
 
 class NormalFormGame_2P(object):
     """
     Class representing a two-player normal form game.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    Examples
+    --------
 
     """
     player_indices = [0, 1]
@@ -70,6 +130,19 @@ def br_corr(mixed_action, payoff_matrix):
     """
     Best response correspondence in pure actions.
 
+    Parameters
+    ----------
+    mixed_action : list(float)
+        A list of probabilities assigned to each pure action. 
+
+    payoff_matrix : array_like(float)
+        A 2-dimensional nparray representing a payoff matrix.
+
+    Returns
+    -------
+    ndarray(int)
+        An array of pure actions that are best response to mixed_action.
+
     """
     #np.asarray?
     if isinstance(mixed_action, int):
@@ -79,6 +152,20 @@ def br_corr(mixed_action, payoff_matrix):
 
 
 def random_choice(actions):
+    """
+    Choose an action randomly from given actions.
+
+    Parameters
+    ----------
+    actions : list(int)
+        A list of pure actions represented by nonnegative integers.
+
+    Returns
+    -------
+    int
+        A pure action chosen at random from given actions.
+
+    """
     if len(actions) == 1:
         return actions[0]
     else:
@@ -88,6 +175,20 @@ def random_choice(actions):
 def pure2mixed(num_actions, action):
     """
     Convert a pure action to the corresponding mixed action.
+
+    Parameters
+    ----------
+    num_actions : int
+        The number of pure actions.
+
+    action : int
+        The pure action you want to convert to the corresponding 
+        mixed action.
+
+    Returns
+    -------
+    ndarray(int) <- float?
+        The corresponding mixed action for the given pure action.
 
     """
     mixed_action = np.zeros(num_actions)
