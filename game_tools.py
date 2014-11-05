@@ -164,7 +164,8 @@ def br_correspondence(opponents_actions, payoffs):
         payoff_vec = payoffs_ndarray[:, opponents_actions]
     else:
         payoff_vec = np.dot(payoffs_ndarray, opponents_actions)
-    return np.where(payoff_vec == payoff_vec.max())[0]
+
+    return np.where(np.isclose(payoff_vec, payoff_vec.max()))[0]
 
 
 def random_choice(actions):
