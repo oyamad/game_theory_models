@@ -1,7 +1,7 @@
 """
 Filename: game_tools.py
 
-Author: Daisuke Oyama
+Authors: Tomohiro Kusano, Daisuke Oyama
 
 Tools for Game Theory.
 
@@ -50,7 +50,7 @@ class Player_2P(object):
     def __init__(self, payoff_matrix, init_action=None):
         self.payoff_matrix = np.asarray(payoff_matrix)
 
-        if len(self.payoff_matrix.shape) != 2: #ndim?
+        if len(self.payoff_matrix.shape) != 2:  # ndim?
             raise ValueError('payoff matrix must be 2-dimensional')
 
         self.n, self.m = self.payoff_matrix.shape
@@ -59,33 +59,34 @@ class Player_2P(object):
 
     def best_response(self, opponent_action,
                       tie_breaking=True, payoff_perturbations=None):
-    """
-    Return the best response actions to the given opponent action.
+        """
+        Return the best response actions to the given opponent action.
 
-    Parameters
-    ----------
+        Parameters
+        ----------
 
-    Returns
-    -------
+        Returns
+        -------
 
-    """
+        """
         br_actions = br_corr(opponent_action, self.payoff_matrix)
+
         if tie_breaking:
             return random_choice(br_actions)
         else:
             return br_actions
-    
+
     def random_choice(self):
-    """
-    Return a pure action chosen at random from the player's actions.
+        """
+        Return a pure action chosen at random from the player's actions.
 
-    Parameters
-    ----------
+        Parameters
+        ----------
 
-    Returns
-    -------
+        Returns
+        -------
 
-    """
+        """
         return random_choice(range(self.n))
 
 
@@ -104,6 +105,7 @@ class NormalFormGame_2P(object):
 
     """
     player_indices = [0, 1]
+
     def __init__(self, payoffs):
         payoffs_ndarray = np.asarray(payoffs)
         if payoffs_ndarray.ndim == 3:  # bimatrix game
@@ -126,14 +128,14 @@ class NormalFormGame_2P(object):
         ]
 
 
-def br_corr(mixed_action, payoff_matrix):
+def br_corr(opponent_action, payoff_matrix):
     """
     Best response correspondence in pure actions.
 
     Parameters
     ----------
-    mixed_action : list(float)
-        A list of probabilities assigned to each pure action. 
+    opponent_action : list(float)
+        A list of probabilities assigned to each pure action.
 
     payoff_matrix : array_like(float)
         A 2-dimensional nparray representing a payoff matrix.
@@ -141,13 +143,13 @@ def br_corr(mixed_action, payoff_matrix):
     Returns
     -------
     ndarray(int)
-        An array of pure actions that are best response to mixed_action.
+        An array of pure actions that are best response to opponent_action.
 
     """
-    #np.asarray?
-    if isinstance(mixed_action, int):
-        mixed_action = pure2mixed(payoff_matrix.shape[0], mixed_action)
-    payoff_vec = np.dot(payoff_matrix, mixed_action)
+    # np.asarray?
+    if isinstance(opponent_action, int):
+        opponent_action = pure2mixed(payoff_matrix.shape[0], opponent_action)
+    payoff_vec = np.dot(payoff_matrix, opponent_action)
     return np.where(payoff_vec == payoff_vec.max())[0]
 
 
@@ -182,7 +184,7 @@ def pure2mixed(num_actions, action):
         The number of pure actions.
 
     action : int
-        The pure action you want to convert to the corresponding 
+        The pure action you want to convert to the corresponding
         mixed action.
 
     Returns
