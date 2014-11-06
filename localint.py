@@ -54,14 +54,20 @@ class LocalInteraction(object):
 
         self.current_actions[:] = best_responses
 
-    def simulate_gen(self, T, revision='simultaneous'):
+    def simulate(self, T, init_actions=None, revision='simultaneous'):
+        """
+        Return array of T arrays of N actions
+
+        """
+        pass
+
+    def simulate_gen(self, T, init_actions=None, revision='simultaneous'):
         """
         Generator version of `simulate`
 
         """
+        self.set_init_actions(init_actions=init_actions)
+
         for t in range(T):
             yield self.current_actions
             self.play(revision=revision)
-
-    def simulate(self, T, revision='simultaneous'):
-        pass
