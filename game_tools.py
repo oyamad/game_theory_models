@@ -159,11 +159,19 @@ def br_correspondence(opponents_actions, payoffs):
 
     """
     payoffs_ndarray = np.asarray(payoffs)
-
-    if isinstance(opponents_actions, int):
-        payoff_vec = payoffs_ndarray[:, opponents_actions]
+    N = payoffs_ndarray.ndim
+    if N == 2:
+        if isinstance(opponents_actions, int):
+            payoff_vec = payoffs_ndarray[:, opponents_actions]
+        else:
+            payoff_vec = payoffs_ndarray.dot(opponents_actions)
     else:
-        payoff_vec = np.dot(payoffs_ndarray, opponents_actions)
+        payoff_vec = payoffs_ndarray
+        for i in reversed(range(N-1)):
+            if isinstance(opponents_actions[i], int):
+                payoff_vec = payoff_vec.take(opponents_actions[i], axis=-1)
+            else:
+                payoff_vec = payoff_vec.dot(opponents_actions[i])
 
     return np.where(np.isclose(payoff_vec, payoff_vec.max()))[0]
 
