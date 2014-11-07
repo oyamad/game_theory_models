@@ -12,34 +12,34 @@ from numpy.testing import assert_array_equal
 import nose
 from nose.tools import eq_, ok_
 
-from game_tools import Player_2P, br_correspondence
+from game_tools import Player, br_correspondence
 
 
-class TestPlayer_2P:
-    """Test the methods of Player_2P"""
+class TestPlayer:
+    """Test the methods of Player"""
 
     def setUp(self):
-        """Setup a Player_2P instance"""
+        """Setup a Player instance"""
         coordination_game_matrix = [[4, 0], [3, 2]]
-        self.player = Player_2P(coordination_game_matrix)
+        self.player = Player(coordination_game_matrix)
 
     def test_best_response_against_pure(self):
-        """Best response against a pure action"""
+        """best_response against a pure action"""
         eq_(self.player.best_response(1), 1)
 
     def test_best_response_against_mixed(self):
-        """Best response against a mixed action"""
+        """best_response against a mixed action"""
         eq_(self.player.best_response([1/2, 1/2]), 1)
 
     def test_best_response_list_when_tie(self):
-        """Best response with tie_breaking=False"""
+        """best_response with tie_breaking=False"""
         assert_array_equal(
             sorted(self.player.best_response([2/3, 1/3], tie_breaking=False)),
             sorted([0, 1])
         )
 
     def test_best_response_with_tie_breaking(self):
-        """Best response with tie_breaking=True (default)"""
+        """best_response with tie_breaking=True (default)"""
         ok_(self.player.best_response([2/3, 1/3]) in [0, 1])
 
 
@@ -54,11 +54,11 @@ class TestBRCorrespondence_2opponents:
                                     [5, 7]]]
 
     def test_br_correspondence_against_pure(self):
-        """Best response against a profile of pure actions"""
+        """br_correspondence against a profile of pure actions"""
         eq_(br_correspondence([0, 0], self.payoffs_2opponents), 0)
 
     def test_br_correspondence_against_mixed(self):
-        """Best response against a profile of mixed actions"""
+        """br_correspondence against a profile of mixed actions"""
         assert_array_equal(
             sorted(br_correspondence([[3/7, 4/7], [1/2, 1/2]],
                                      self.payoffs_2opponents)),
