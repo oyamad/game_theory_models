@@ -11,16 +11,14 @@ from __future__ import division
 import numpy as np
 
 
-class Player_2P(object):
+class Player(object):
     """
     Class representing a player in a two-player normal form game.
 
-    TODO: Extend it to the general case of N-1 opponent players
-
     Parameters
     ----------
-    payoff_matrix : array_like(float)
-        A 2-dimensional ndarray representing a payoff matrix.
+    payoff_matrix : array_like(float, ndim=N)
+        A N-dimensional array_like representing the player's payoffs.
 
     init_action : int?, optional(default=None)
         (To be written)
@@ -30,33 +28,24 @@ class Player_2P(object):
     payoff_matrix : ndarray(float)
         The payoff matrix of the game converted into ndarray.
 
-    n : long
-        The number of rows of payoff_matrix.
-
-    m : long
-        The number of columns of payoff_matrix.
+    num_actions : long
+        The number of actions the player has.
 
     current_action : int?
         (To be written)
 
     Examples
     --------
-    >>> P = game_tools.Player_2P([[4,0], [3,2]])
+    >>> P = game_tools.Player([[4,0,6], [3,2,5]])
     >>> P
     Player_2P:
-        payoff_matrix: array([[4,0],[3,2]])
-        n: 2L
-        m: 2L
+        payoff_matrix: array([[4,0,6],[3,2,5]])
+        num_actions: 2L
 
     """
     def __init__(self, payoff_matrix, init_action=None):
         self.payoff_matrix = np.asarray(payoff_matrix)
-
-        if len(self.payoff_matrix.shape) != 2:  # ndim?
-            raise ValueError('payoff matrix must be 2-dimensional')
-
-        self.n, self.m = self.payoff_matrix.shape
-
+        self.num_actions = self.payoff_matrix.shape[0]
         self.current_action = init_action
 
     def best_response(self, opponent_action,
@@ -89,10 +78,10 @@ class Player_2P(object):
         -------
 
         """
-        return random_choice(range(self.n))
+        return random_choice(range(self.num_actions))
 
 
-class NormalFormGame_2P(object):
+class NormalFormGame(object):
     """
     Class representing a two-player normal form game.
 
@@ -126,7 +115,7 @@ class NormalFormGame_2P(object):
             )
 
         self.players = [
-            Player_2P(self.matrices[i]) for i in self.player_indices
+            Player(self.matrices[i]) for i in self.player_indices
         ]
 
 
@@ -135,7 +124,7 @@ def br_correspondence(opponents_actions, payoffs):
     Best response correspondence in pure actions. It returns a list of
     the pure best responses to a profile of N-1 opponents' actions.
 
-    TODO: Extend it to the general case of N-1 opponent players
+    TODO: Revise Docstring.
 
     Parameters
     ----------
