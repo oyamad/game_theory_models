@@ -20,9 +20,6 @@ class Player(object):
     payoff_matrix : array_like(float, ndim=N)
         A N-dimensional array_like representing the player's payoffs.
 
-    init_action : int?, optional(default=None)
-        (To be written)
-
     Attributes
     ----------
     payoff_matrix : ndarray(float)
@@ -43,10 +40,9 @@ class Player(object):
         num_actions: 2L
 
     """
-    def __init__(self, payoff_matrix, init_action=None):
+    def __init__(self, payoff_matrix):
         self.payoff_matrix = np.asarray(payoff_matrix)
         self.num_actions = self.payoff_matrix.shape[0]
-        self.current_action = init_action
 
     def best_response(self, opponent_action,
                       tie_breaking=True, payoff_perturbations=None):
