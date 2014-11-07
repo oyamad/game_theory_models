@@ -44,6 +44,30 @@ class Player(object):
         self.payoff_matrix = np.asarray(payoff_matrix)
         self.num_actions = self.payoff_matrix.shape[0]
 
+    def payoff_vector(self, opponents_actions):
+        """
+        Return an array of payoff values, one for each own action, given
+        a list of the opponents' actions.
+
+        TO BE IMPLEMENTED
+
+        """
+        pass
+
+    def is_best_response(self, own_action, opponents_actions):
+        """
+        Return True if `own_action` is a best response to
+        `opponents_actions`.
+
+        """
+        payoff_vector = self.payoff_vector(opponents_actions)
+        payoff_max = payoff_vector.max()
+
+        if isinstance(own_action, int):
+            return np.isclose(payoff_vector[own_action], payoff_max)
+        else:
+            return np.isclose(np.dot(own_action, payoff_vector), payoff_max)
+
     def best_response(self, opponent_action,
                       tie_breaking=True, payoff_perturbations=None):
         """
@@ -113,6 +137,24 @@ class NormalFormGame(object):
         self.players = [
             Player(self.matrices[i]) for i in self.player_indices
         ]
+
+    def is_nash(self, action_profile):
+        """
+        Return True if `action_profile` is a Nash equilibrium.
+
+        """
+        action_profile_permed = list(action_profile)
+
+        for i, player in enumerate(self.players):
+            own_action = action_profile_permed.pop(0)
+            opponents_actions = action_profile_permed
+
+            if not player.is_best_response(own_action, opponents_actions):
+                return False
+
+            action_profile_permed.append(own_action)
+
+        return True
 
 
 def br_correspondence(opponents_actions, payoffs):

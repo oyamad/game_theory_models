@@ -12,11 +12,11 @@ from numpy.testing import assert_array_equal
 import nose
 from nose.tools import eq_, ok_
 
-from game_tools import Player, br_correspondence
+from game_tools import Player, NormalFormGame, br_correspondence
 
 
-class TestPlayer:
-    """Test the methods of Player"""
+class TestPlayer_1opponent:
+    """Test the methods of Player with one opponent player"""
 
     def setUp(self):
         """Setup a Player instance"""
@@ -24,7 +24,7 @@ class TestPlayer:
         self.player = Player(coordination_game_matrix)
 
     def test_best_response_against_pure(self):
-        """best_response against a pure action"""
+        """aaaaa against a pure action"""
         eq_(self.player.best_response(1), 1)
 
     def test_best_response_against_mixed(self):
@@ -41,6 +41,31 @@ class TestPlayer:
     def test_best_response_with_tie_breaking(self):
         """best_response with tie_breaking=True (default)"""
         ok_(self.player.best_response([2/3, 1/3]) in [0, 1])
+
+    def test_is_best_response_pure(self):
+        """is_best_response with pure actions"""
+        ok_(self.player.is_best_response(0, 0))
+
+    def test_is_best_response_mixed(self):
+        """is_best_response with mixed actions"""
+        ok_(self.player.is_best_response([1/2, 1/2], [2/3, 1/3]))
+
+
+class TestNormalFormGame_2p:
+    """Test the methods of NormalFormGame with two players"""
+
+    def setUp(self):
+        """Setup a NormalFormGame instance"""
+        coordination_game_matrix = [[4, 0], [3, 2]]
+        self.g = NormalFormGame(coordination_game_matrix)
+
+    def test_is_nash_pure(self):
+        """is_nash with pure actions"""
+        ok_(self.g.is_nash((0, 0)))
+
+    def test_is_nash_mixed(self):
+        """is_nash with mixed actions"""
+        ok_(self.g.is_nash(([2/3, 1/3], [2/3, 1/3])))
 
 
 class TestBRCorrespondence_2opponents:
