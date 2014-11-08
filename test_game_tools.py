@@ -7,7 +7,6 @@ Tests for game_tools.py
 """
 from __future__ import division
 
-import sys
 from numpy.testing import assert_array_equal
 import nose
 from nose.tools import eq_, ok_
@@ -24,7 +23,7 @@ class TestPlayer_1opponent:
         self.player = Player(coordination_game_matrix)
 
     def test_best_response_against_pure(self):
-        """aaaaa against a pure action"""
+        """best_response against a pure action"""
         eq_(self.player.best_response(1), 1)
 
     def test_best_response_against_mixed(self):
@@ -92,6 +91,8 @@ class TestBRCorrespondence_2opponents:
 
 
 if __name__ == '__main__':
+    import sys
+
     argv = sys.argv[:]
     argv.append('--verbose')
     argv.append('--nocapture')
