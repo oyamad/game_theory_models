@@ -70,7 +70,7 @@ class Player(object):
         data = np.asarray(data)
 
         if data.ndim <= 1:  # data represents action sizes
-            # payoff_array filled with zeros, to be populated by the user
+            # payoff_array filled with zeros
             self.payoff_array = np.zeros(data)
         else:  # data represents a payoff array
             self.payoff_array = data
@@ -149,28 +149,69 @@ class NormalFormGame(object):
     --------
 
     """
-    player_indices = [0, 1]
+    def __init__(self, data):
+        # data represents a list of Players
+        if hasattr(data, '__getitem__') and isinstance(data[0], Player):
+            N = len(data)
 
-    def __init__(self, payoffs):
-        payoffs_ndarray = np.asarray(payoffs)
-        if payoffs_ndarray.ndim == 3:  # bimatrix game
-            self.bimatrix = payoffs_ndarray
-            self.matrices = [payoffs_ndarray[:, :, 0],
-                             payoffs_ndarray[:, :, 1].T]
-        elif payoffs_ndarray.ndim == 2:  # symmetric game
-            try:
-                self.bimatrix = np.dstack((payoffs_ndarray, payoffs_ndarray.T))
-            except:
-                raise ValueError('a symmetric game must be a square array')
-            self.matrices = [payoffs_ndarray, payoffs_ndarray]
+            # Check that action_sizes are consistent
+            action_sizes_0 = data[0].action_sizes
+            for i in range(1, N):
+                if not (
+                    data[i].action_sizes ==
+                    tuple(action_sizes_0[j] for j in np.arange(i, i+N) % N)
+                ):
+                    raise ValueError(
+                        'shapes of payoff arrays must be consistent'
+                    )
+
+            self.players = list(data)
+
+        # data represents action sizes or a payoff array
         else:
-            raise ValueError(
-                'the game must be represented by a bimatrix or a square matrix'
-            )
+            data = np.asarray(data)
 
-        self.players = [
-            Player(self.matrices[i]) for i in self.player_indices
+            if data.ndim == 0:  # data represents action size
+                # Degenerate game consisting of one player
+                N = 1
+                self.players = [Player(data)]
+
+            elif data.ndim == 1:  # data represents action sizes
+                N = data.size
+                # payoff_arrays filled with zeros
+                # Payoff values set via __setitem__
+                self.players = [
+                    Player(data[np.arange(i, i+N) % N]) for i in range(N)
+                ]
+
+            else:  # data represents a payoff array
+                N = data.ndim - 1
+                self.players = [
+                    Player(
+                        data.take(i, axis=-1).transpose(np.arange(i, i+N) % N)
+                    ) for i in range(N)
+                ]
+
+        self.N = N  # Number of players
+
+    def __getitem__(self, action_profile):
+        if len(action_profile) != self.N:
+            raise IndexError
+
+        index = np.asarray(action_profile)
+        N = self.N
+        payoff_profile = [
+            player.payoff_array[tuple(index[np.arange(i, i+N) % N])]
+            for i, player in enumerate(self.players)
         ]
+
+        return payoff_profile
+
+    def __setitem__(self, action_profile, payoff_profile):
+        """
+        TO BE IMPLEMENTED
+        """
+        pass
 
     def is_nash(self, action_profile):
         """
