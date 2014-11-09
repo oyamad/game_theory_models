@@ -1,9 +1,33 @@
-"""
+r"""
 Filename: game_tools.py
 
 Authors: Tomohiro Kusano, Daisuke Oyama
 
 Tools for Game Theory.
+
+Definitions and Basic Concepts
+------------------------------
+
+Creating a NormalFormGame
+-------------------------
+
+Creating a Player
+-----------------
+
+>>> coordination_game_matrix = [[4, 0], [3, 2]]
+>>> player = Player(coordination_game_matrix)
+>>> player.payoff_array
+array([[4, 0],
+       [3, 2]])
+
+>>> player = Player((2, 2))
+>>> player.payoff_array[0, 0] = 4
+>>> player.payoff_array[0, 1] = 0
+>>> player.payoff_array[1, 0] = 3
+>>> player.payoff_array[1, 1] = 2
+>>> player.payoff_array
+array([[ 4.,  0.],
+       [ 3.,  2.]])
 
 """
 from __future__ import division
@@ -13,23 +37,25 @@ import numpy as np
 
 class Player(object):
     """
-    Class representing a player in a two-player normal form game.
+    Class representing a player in an N-player normal form game.
 
     Parameters
     ----------
-    payoff_matrix : array_like(float, ndim=N)
-        A N-dimensional array_like representing the player's payoffs.
+    data : array_like(float)
+        If dimension >= 2, it is treated as an array representing the
+        player's payoffs. If dimension == 1, it is treated as an array
+        containing the numbers of available actions for the player and
+        his opponents.
 
     Attributes
     ----------
-    payoff_matrix : ndarray(float)
-        The payoff matrix of the game converted into ndarray.
+    payoff_array : ndarray(float, ndim=N)
+        Array representing the players payoffs.
 
-    num_actions : long
-        The number of actions the player has.
+    num_actions : int
+        The number of actions available to the player.
 
-    current_action : int?
-        (To be written)
+    action_sizes : tuple(int)
 
     Examples
     --------
@@ -40,14 +66,22 @@ class Player(object):
         num_actions: 2L
 
     """
-    def __init__(self, payoff_matrix):
-        self.payoff_matrix = np.asarray(payoff_matrix)
-        self.num_actions = self.payoff_matrix.shape[0]
+    def __init__(self, data):
+        data = np.asarray(data)
+
+        if data.ndim <= 1:  # data represents action sizes
+            # payoff_array filled with zeros, to be populated by the user
+            self.payoff_array = np.zeros(data)
+        else:  # data represents a payoff array
+            self.payoff_array = data
+
+        self.action_sizes = self.payoff_array.shape
+        self.num_actions = self.action_sizes[0]
 
     def payoff_vector(self, opponents_actions):
         """
         Return an array of payoff values, one for each own action, given
-        a list of the opponents' actions.
+        a profile of the opponents' actions.
 
         TO BE IMPLEMENTED
 
@@ -68,10 +102,10 @@ class Player(object):
         else:
             return np.isclose(np.dot(own_action, payoff_vector), payoff_max)
 
-    def best_response(self, opponent_action,
+    def best_response(self, opponents_actions,
                       tie_breaking=True, payoff_perturbations=None):
         """
-        Return the best response actions to the given opponent action.
+        Return the best response actions to `opponents_actions`.
 
         Parameters
         ----------
@@ -80,7 +114,7 @@ class Player(object):
         -------
 
         """
-        br_actions = br_correspondence(opponent_action, self.payoff_matrix)
+        br_actions = br_correspondence(opponents_actions, self.payoff_array)
 
         if tie_breaking:
             return random_choice(br_actions)
