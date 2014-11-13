@@ -14,6 +14,10 @@ from game_tools import Player
 
 
 class LocalInteraction(object):
+    """
+    Local Interaction Model
+    
+    """
     def __init__(self, payoff_matrix, adj_matrix):
         self.adj_matrix = sparse.csr_matrix(adj_matrix)
         M, N = self.adj_matrix.shape
