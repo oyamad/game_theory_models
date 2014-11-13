@@ -47,16 +47,25 @@ class LocalInteraction(object):
 
     def play(self, revision='simultaneous'):
         """
-        revision : ['simultaneous'|'sequential']
+        The method used to proceed the game by one period.
 
         """
-        opponent_act_dists = \
-            self.adj_matrix.dot(self.current_actions_mixed).toarray()
-        best_responses = np.empty(self.N, dtype=int)
-        for i, player in enumerate(self.players):
-            best_responses[i] = player.best_response(opponent_act_dists[i, :])
+        if revision == 'simultaneous':
+            opponent_act_dists = \
+                self.adj_matrix.dot(self.current_actions_mixed).toarray()
+            best_responses = np.empty(self.N, dtype=int)
+            for i, player in enumerate(self.players):
+                best_responses[i] = player.best_response(opponent_act_dists[i, :])
 
-        self.current_actions[:] = best_responses
+            self.current_actions[:] = best_responses
+
+        if revision == 'sequential':
+            n = np.random.choice(range(self.N)) # The index of chosen player
+            mover = self.players[n]
+            opponent_act_dists = \
+                self.adj_matrix.dot(self.current_actions_mixed).toarray()
+            best_response = mover.best_response(opponent_act_dists[n, :])
+            self.current_actions[n] = best_response
 
     def simulate(self, T, init_actions=None, revision='simultaneous'):
         """
@@ -65,7 +74,7 @@ class LocalInteraction(object):
         """
         self.set_init_actions(init_actions=init_actions)
 
-        history_of_action_profiles = np.empty([T, self.num_actions])
+        history_of_action_profiles = np.empty([T, self.N])
         for i in range(T):
             history_of_action_profiles[i] = self.current_actions
             self.play(revision=revision)
