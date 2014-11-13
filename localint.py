@@ -63,7 +63,14 @@ class LocalInteraction(object):
         Return array of T arrays of N actions
 
         """
-        pass
+        self.set_init_actions(init_actions=init_actions)
+
+        history_of_action_profiles = np.empty([T, self.num_actions])
+        for i in range(T):
+            history_of_action_profiles[i] = self.current_actions
+            self.play(revision=revision)
+
+        return history_of_action_profiles
 
     def simulate_gen(self, T, init_actions=None, revision='simultaneous'):
         """
