@@ -1,7 +1,7 @@
 """
 Filename: localint.py
 
-Author: Daisuke Oyama
+Authors: Daisuke Oyama, Atsushi Yamagishi
 
 Local interaction model.
 
@@ -15,39 +15,38 @@ from game_tools import Player
 
 class LocalInteraction(object):
     """
-    Class representing "Local Interaction Model."
-    This can handle N action games on any network.
-    
+    Class representing the Local Interaction Model.
+
     Parameters
     ----------
-    payoff_matrix: array_like(float, ndim=2)
-        The payoff matrix of the game played in each interaction.
+    payoff_matrix : array_like(float, ndim=2)
+        The payoff matrix of the symmetric two-player game played in
+        each interaction.
 
-    adj_matrix : array_like(int, ndim=2)
-        The adjacency matrix of the unweighted network to be simulated.
-
+    adj_matrix : array_like(float, ndim=2)
+        The adjacency matrix of the network. Non constant weights and
+        asymmetry in interactions are allowed, where adj_matrix[i, j] is
+        the weight of player j's action on player i.
 
     Attributes
     ----------
-    Players : list(player(payoff_matrix))
+    players : list(Player)
         The list consisting of all players with the given payoff matrix.
-        Players are represented by "Player" instances from "game_tools."
+        Players are represented by instances of the `Player` class from
+        `game_tools`.
 
-    adj_matrix : scipy.sparse.csr.csr_matrix(float, ndim=2) <- int?
-        The adjancency matrix of the network in sparse matrix form.
+    adj_matrix : scipy.sparse.csr.csr_matrix(float, ndim=2)
+        See Parameters.
 
     N : int
         The Number of players.
 
     num_actions : int
-        The number of actions
-
-    current_actions_mixed : scipy.sparse.csr.csr_matrix(int, ndim=2)
-        (N)*(num_actions) matrix. The ij element is determined by the rule:  
-        "If Player i is taking action j, it is 1. Otherwise, 0." 
+        The number of actions available to each player.
 
     current_actions : ndarray(int, ndim=1)
-        This array represents which action each player is taking.
+        Array of length N containing the current action configuration of
+        the players.
 
     """
     def __init__(self, payoff_matrix, adj_matrix):
@@ -77,49 +76,64 @@ class LocalInteraction(object):
 
         self.current_actions[:] = init_actions
 
-    def play(self, revision='simultaneous'):
+    def play(self, player_ind=None):
         """
         The method used to proceed the game by one period.
 
-        """
-        if revision == 'simultaneous':
-            opponent_act_dists = \
-                self.adj_matrix.dot(self.current_actions_mixed).toarray()
-            best_responses = np.empty(self.N, dtype=int)
-            for i, player in enumerate(self.players):
-                best_responses[i] = player.best_response(opponent_act_dists[i, :])
+        Parameters
+        ----------
+        player_ind : scalar(int) or array_like(int),
+                     optional(default=None)
+            Index (int) of a player or a list of indices of players to
+            be given an revision opportunity.
 
-            self.current_actions[:] = best_responses
+        """
+        if player_ind is None:
+            player_ind = list(range(self.N))
+
+        elif isinstance(player_ind, int):
+            player_ind = [player_ind]
+
+        opponent_act_dists = \
+            self.adj_matrix[player_ind].dot(self.current_actions_mixed).toarray()
+
+        best_responses = np.empty(len(player_ind), dtype=int)
+        for k, i in enumerate(player_ind):
+            best_responses[k] = \
+                self.players[i].best_response(opponent_act_dists[k, :])
+
+        self.current_actions[player_ind] = best_responses
+
+    def simulate(self, ts_length, init_actions=None, revision='simultaneous'):
+        """
+        Return array of ts_length arrays of N actions
+
+        """
+        self.set_init_actions(init_actions=init_actions)
+
+        actions_sequence = np.empty([ts_length, self.N], dtype=int)
+        actions_sequence_iter = \
+            self.simulate_iter(ts_length, init_actions=init_actions,
+                               revision=revision)
+
+        for t, actions in enumerate(actions_sequence_iter):
+            actions_sequence[t] = actions
+
+        return actions_sequence
+
+    def simulate_iter(self, ts_length, init_actions=None,
+                      revision='simultaneous'):
+        """
+        Iterator version of `simulate`
+
+        """
+        self.set_init_actions(init_actions=init_actions)
 
         if revision == 'sequential':
-            n = np.random.choice(range(self.N)) # The index of chosen player
-            mover = self.players[n]
-            opponent_act_dists = \
-                self.adj_matrix.dot(self.current_actions_mixed).toarray()
-            best_response = mover.best_response(opponent_act_dists[n, :])
-            self.current_actions[n] = best_response
+            player_ind_sequence = np.random.randint(self.N, size=ts_length)
+        else:
+            player_ind_sequence = [None] * ts_length
 
-    def simulate(self, T, init_actions=None, revision='simultaneous'):
-        """
-        Return array of T arrays of N actions
-
-        """
-        self.set_init_actions(init_actions=init_actions)
-
-        history_of_action_profiles = np.empty([T, self.N])
-        for i in range(T):
-            history_of_action_profiles[i] = self.current_actions
-            self.play(revision=revision)
-
-        return history_of_action_profiles
-
-    def simulate_gen(self, T, init_actions=None, revision='simultaneous'):
-        """
-        Generator version of `simulate`
-
-        """
-        self.set_init_actions(init_actions=init_actions)
-
-        for t in range(T):
+        for t in range(ts_length):
             yield self.current_actions
-            self.play(revision=revision)
+            self.play(player_ind=player_ind_sequence[t])
