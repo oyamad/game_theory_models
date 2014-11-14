@@ -53,19 +53,27 @@ class LocalInteraction(object):
         if revision == 'simultaneous':
             opponent_act_dists = \
                 self.adj_matrix.dot(self.current_actions_mixed).toarray()
+
             best_responses = np.empty(self.N, dtype=int)
             for i, player in enumerate(self.players):
-                best_responses[i] = player.best_response(opponent_act_dists[i, :])
+                best_responses[i] = \
+                    player.best_response(opponent_act_dists[i, :])
 
             self.current_actions[:] = best_responses
 
-        if revision == 'sequential':
+        elif revision == 'sequential':
             i = np.random.choice(range(self.N))  # The index of chosen player
-            mover = self.players[i]
-            opponent_act_dists = \
-                self.adj_matrix.dot(self.current_actions_mixed).toarray()
-            best_response = mover.best_response(opponent_act_dists[i, :])
-            self.current_actions[i] = best_response
+            revising_player = self.players[i]
+
+            # adj_matrix[i] is a 1xN sparse matrix, whose ndim = 2
+            opponent_act_dist = \
+                self.adj_matrix[i].dot(self.current_actions_mixed).toarray()[0]
+
+            self.current_actions[i] = \
+                revising_player.best_response(opponent_act_dist)
+
+        else:
+            raise ValueError
 
     def simulate(self, ts_length, init_actions=None, revision='simultaneous'):
         """
@@ -74,20 +82,24 @@ class LocalInteraction(object):
         """
         self.set_init_actions(init_actions=init_actions)
 
-        actions_sequence = np.empty([ts_length, self.N])
-        for t in range(ts_length):
-            actions_sequence[t] = self.current_actions
-            self.play(revision=revision)
+        actions_sequence = np.empty([ts_length, self.N], dtype=int)
+        actions_sequence_iter = \
+            self.simulate_iter(ts_length, init_actions=init_actions,
+                               revision=revision)
+
+        for t, actions in enumerate(actions_sequence_iter):
+            actions_sequence[t] = actions
 
         return actions_sequence
 
-    def simulate_iter(self, T, init_actions=None, revision='simultaneous'):
+    def simulate_iter(self, ts_length, init_actions=None,
+                      revision='simultaneous'):
         """
         Iterator version of `simulate`
 
         """
         self.set_init_actions(init_actions=init_actions)
 
-        for t in range(T):
+        for t in range(ts_length):
             yield self.current_actions
             self.play(revision=revision)
