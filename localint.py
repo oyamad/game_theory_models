@@ -1,7 +1,7 @@
 """
 Filename: localint.py
 
-Author: Daisuke Oyama
+Authors: Daisuke Oyama, Atsushi Yamagishi
 
 Local interaction model.
 
@@ -16,7 +16,7 @@ from game_tools import Player
 class LocalInteraction(object):
     """
     Local Interaction Model
-    
+
     """
     def __init__(self, payoff_matrix, adj_matrix):
         self.adj_matrix = sparse.csr_matrix(adj_matrix)
@@ -60,30 +60,30 @@ class LocalInteraction(object):
             self.current_actions[:] = best_responses
 
         if revision == 'sequential':
-            n = np.random.choice(range(self.N)) # The index of chosen player
-            mover = self.players[n]
+            i = np.random.choice(range(self.N))  # The index of chosen player
+            mover = self.players[i]
             opponent_act_dists = \
                 self.adj_matrix.dot(self.current_actions_mixed).toarray()
-            best_response = mover.best_response(opponent_act_dists[n, :])
-            self.current_actions[n] = best_response
+            best_response = mover.best_response(opponent_act_dists[i, :])
+            self.current_actions[i] = best_response
 
-    def simulate(self, T, init_actions=None, revision='simultaneous'):
+    def simulate(self, ts_length, init_actions=None, revision='simultaneous'):
         """
-        Return array of T arrays of N actions
+        Return array of ts_length arrays of N actions
 
         """
         self.set_init_actions(init_actions=init_actions)
 
-        history_of_action_profiles = np.empty([T, self.N])
-        for i in range(T):
-            history_of_action_profiles[i] = self.current_actions
+        actions_sequence = np.empty([ts_length, self.N])
+        for t in range(ts_length):
+            actions_sequence[t] = self.current_actions
             self.play(revision=revision)
 
-        return history_of_action_profiles
+        return actions_sequence
 
-    def simulate_gen(self, T, init_actions=None, revision='simultaneous'):
+    def simulate_iter(self, T, init_actions=None, revision='simultaneous'):
         """
-        Generator version of `simulate`
+        Iterator version of `simulate`
 
         """
         self.set_init_actions(init_actions=init_actions)
