@@ -15,39 +15,38 @@ from game_tools import Player
 
 class LocalInteraction(object):
     """
-    Class representing "Local Interaction Model."
-    This can handle N action games on any network.
-    
+    Class representing the Local Interaction Model.
+
     Parameters
     ----------
-    payoff_matrix: array_like(float, ndim=2)
-        The payoff matrix of the game played in each interaction.
+    payoff_matrix : array_like(float, ndim=2)
+        The payoff matrix of the symmetric two-player game played in
+        each interaction.
 
-    adj_matrix : array_like(int, ndim=2)
-        The adjacency matrix of the unweighted network to be simulated.
-
+    adj_matrix : array_like(float, ndim=2)
+        The adjacency matrix of the network. Non constant weights and
+        asymmetry in interactions are allowed, where adj_matrix[i, j] is
+        the weight of player j's action on player i.
 
     Attributes
     ----------
-    Players : list(player(payoff_matrix))
+    players : list(Player)
         The list consisting of all players with the given payoff matrix.
-        Players are represented by "Player" instances from "game_tools."
+        Players are represented by instances of the `Player` class from
+        `game_tools`.
 
-    adj_matrix : scipy.sparse.csr.csr_matrix(float, ndim=2) <- int?
-        The adjancency matrix of the network in sparse matrix form.
+    adj_matrix : scipy.sparse.csr.csr_matrix(float, ndim=2)
+        See Parameters.
 
     N : int
         The Number of players.
 
     num_actions : int
-        The number of actions
-
-    current_actions_mixed : scipy.sparse.csr.csr_matrix(int, ndim=2)
-        (N)*(num_actions) matrix. The ij element is determined by the rule:  
-        "If Player i is taking action j, it is 1. Otherwise, 0." 
+        The number of actions available to each player.
 
     current_actions : ndarray(int, ndim=1)
-        This array represents which action each player is taking.
+        Array of length N containing the current action configuration of
+        the players.
 
     """
     def __init__(self, payoff_matrix, adj_matrix):
