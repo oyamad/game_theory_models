@@ -45,35 +45,33 @@ class LocalInteraction(object):
 
         self.current_actions[:] = init_actions
 
-    def play(self, revision='simultaneous'):
+    def play(self, player_ind=None):
         """
         The method used to proceed the game by one period.
 
+        Parameters
+        ----------
+        player_ind : scalar(int) or array_like(int),
+                     optional(default=None)
+            Index (int) of a player or a list of indices of players to
+            be given an revision opportunity.
+
         """
-        if revision == 'simultaneous':
-            opponent_act_dists = \
-                self.adj_matrix.dot(self.current_actions_mixed).toarray()
+        if player_ind is None:
+            player_ind = list(range(self.N))
 
-            best_responses = np.empty(self.N, dtype=int)
-            for i, player in enumerate(self.players):
-                best_responses[i] = \
-                    player.best_response(opponent_act_dists[i, :])
+        elif isinstance(player_ind, int):
+            player_ind = [player_ind]
 
-            self.current_actions[:] = best_responses
+        opponent_act_dists = \
+            self.adj_matrix[player_ind].dot(self.current_actions_mixed).toarray()
 
-        elif revision == 'sequential':
-            i = np.random.choice(range(self.N))  # The index of chosen player
-            revising_player = self.players[i]
+        best_responses = np.empty(len(player_ind), dtype=int)
+        for k, i in enumerate(player_ind):
+            best_responses[k] = \
+                self.players[i].best_response(opponent_act_dists[k, :])
 
-            # adj_matrix[i] is a 1xN sparse matrix, whose ndim = 2
-            opponent_act_dist = \
-                self.adj_matrix[i].dot(self.current_actions_mixed).toarray()[0]
-
-            self.current_actions[i] = \
-                revising_player.best_response(opponent_act_dist)
-
-        else:
-            raise ValueError
+        self.current_actions[player_ind] = best_responses
 
     def simulate(self, ts_length, init_actions=None, revision='simultaneous'):
         """
@@ -100,6 +98,11 @@ class LocalInteraction(object):
         """
         self.set_init_actions(init_actions=init_actions)
 
+        if revision == 'sequential':
+            player_ind_sequence = np.random.randint(self.N, size=ts_length)
+        else:
+            player_ind_sequence = [None] * ts_length
+
         for t in range(ts_length):
             yield self.current_actions
-            self.play(revision=revision)
+            self.play(player_ind=player_ind_sequence[t])
