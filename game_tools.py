@@ -86,7 +86,20 @@ class Player(object):
         TO BE IMPLEMENTED
 
         """
-        pass
+        N = self.payoff_array.ndim
+        if N == 2:
+            if isinstance(opponents_actions, int):
+                return self.payoff_array[:, opponents_actions]
+            else:
+                return self.payoff_array.dot(opponents_actions)
+        else:
+            payoff_vec = self.payoff_array
+            for i in reversed(range(N-1)):
+                if isinstance(opponents_actions[i], int):
+                    payoff_vec = payoff_vec.take(opponents_actions[i], axis=-1)
+                else:
+                    payoff_vec = payoff_vec.dot(opponents_actions[i])
+            return payoff_vec
 
     def is_best_response(self, own_action, opponents_actions):
         """
@@ -224,7 +237,7 @@ class NormalFormGame(object):
             own_action = action_profile_permed.pop(0)
             opponents_actions = action_profile_permed
 
-            if not player.is_best_response(own_action, opponents_actions):
+            if not player.is_best_response(own_action, opponents_actions[0]):
                 return False
 
             action_profile_permed.append(own_action)
