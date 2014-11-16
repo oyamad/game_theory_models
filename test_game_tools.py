@@ -10,7 +10,7 @@ from __future__ import division
 import numpy as np
 from numpy.testing import assert_array_equal
 import nose
-from nose.tools import eq_, ok_
+from nose.tools import eq_, ok_, raises
 
 from game_tools import Player, NormalFormGame, br_correspondence
 
@@ -110,7 +110,7 @@ class TestNormalFormGame_Asym2p:
         ok_(self.g.is_nash(([1/2, 1/2], [1/2, 1/2])))
 
 
-def test_normalformgame_construction_action_sizes():
+def test_normalformgame_input_action_sizes():
     g = NormalFormGame((2, 3, 4))
 
     eq_(g.N, 3)  # Number of players
@@ -127,6 +127,23 @@ def test_normalformgame_construction_action_sizes():
         g.players[2].payoff_array,
         np.zeros((4, 2, 3))
     )
+
+
+@raises(ValueError)
+def test_normalformgame_invalid_input_players():
+    p0 = Player(np.zeros((2, 3)))
+    p1 = Player(np.zeros((2, 3)))
+    g = NormalFormGame([p0, p1])
+
+
+@raises(ValueError)
+def test_normalformgame_invalid_input_nosquare_matrix():
+    g = NormalFormGame(np.zeros((2, 3)))
+
+
+@raises(ValueError)
+def test_normalformgame_invalid_input_payoff_profiles():
+    g = NormalFormGame(np.zeros((2, 2, 1)))
 
 
 if __name__ == '__main__':
