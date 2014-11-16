@@ -7,6 +7,7 @@ Tests for game_tools.py
 """
 from __future__ import division
 
+import numpy as np
 from numpy.testing import assert_array_equal
 import nose
 from nose.tools import eq_, ok_
@@ -108,6 +109,24 @@ class TestNormalFormGame_Asym2p:
         """is_nash with mixed actions"""
         ok_(self.g.is_nash(([1/2, 1/2], [1/2, 1/2])))
 
+
+def test_normalformgame_construction_action_sizes():
+    g = NormalFormGame((2, 3, 4))
+
+    eq_(g.N, 3)  # Number of players
+
+    assert_array_equal(
+        g.players[0].payoff_array,
+        np.zeros((2, 3, 4))
+    )
+    assert_array_equal(
+        g.players[1].payoff_array,
+        np.zeros((3, 4, 2))
+    )
+    assert_array_equal(
+        g.players[2].payoff_array,
+        np.zeros((4, 2, 3))
+    )
 
 if __name__ == '__main__':
     import sys

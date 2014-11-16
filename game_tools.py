@@ -11,6 +11,27 @@ Definitions and Basic Concepts
 Creating a NormalFormGame
 -------------------------
 
+>>> matching_pennies_bimatrix = [[(1, -1), (-1, 1)], [(-1, 1), (1, -1)]]
+>>> g = NormalFormGame(matching_pennies_bimatrix)
+>>> g.players[0].payoff_array
+array([[ 1, -1],
+       [-1,  1]])
+>>> g.players[1].payoff_array
+array([[-1,  1],
+       [ 1, -1]])
+
+>>> g = NormalFormGame((2, 3, 4))
+>>> g.players[0].payoff_array
+array([[[ 0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.]],
+
+       [[ 0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.]]])
+>>> g[0, 0, 0]
+[0.0, 0.0, 0.0]
+
 Creating a Player
 -----------------
 
@@ -19,15 +40,6 @@ Creating a Player
 >>> player.payoff_array
 array([[4, 0],
        [3, 2]])
-
->>> player = Player((2, 2))
->>> player.payoff_array[0, 0] = 4
->>> player.payoff_array[0, 1] = 0
->>> player.payoff_array[1, 0] = 3
->>> player.payoff_array[1, 1] = 2
->>> player.payoff_array
-array([[ 4.,  0.],
-       [ 3.,  2.]])
 
 """
 from __future__ import division
@@ -41,11 +53,11 @@ class Player(object):
 
     Parameters
     ----------
-    data : array_like(float)
-        If dimension >= 2, it is treated as an array representing the
-        player's payoffs. If dimension == 1, it is treated as an array
-        containing the numbers of available actions for the player and
-        his opponents.
+    payoff_array : array_like(float)
+        Array representing the player's payoff function, where
+        payoff_array[a_0, a_1, ..., a_{N-1}] is the payoff to the player
+        when the player plays action a_0 while his N-1 opponents play
+        action a_1, ..., a_{N-1}, respectively.
 
     Attributes
     ----------
@@ -54,6 +66,9 @@ class Player(object):
 
     num_actions : int
         The number of actions available to the player.
+
+    num_opponents : int
+        The number of opponent players.
 
     action_sizes : tuple(int)
 
@@ -66,15 +81,13 @@ class Player(object):
         num_actions: 2L
 
     """
-    def __init__(self, data):
-        data = np.asarray(data)
+    def __init__(self, payoff_array):
+        self.payoff_array = np.asarray(payoff_array)
 
-        if data.ndim <= 1:  # data represents action sizes
-            # payoff_array filled with zeros
-            self.payoff_array = np.zeros(data)
-        else:  # data represents a payoff array
-            self.payoff_array = data
+        if self.payoff_array.ndim == 0:
+            raise ValueError('payoff_array must be an array_like')
 
+        self.num_opponents = self.payoff_array.ndim - 1
         self.action_sizes = self.payoff_array.shape
         self.num_actions = self.action_sizes[0]
 
@@ -191,10 +204,12 @@ class NormalFormGame(object):
 
             elif data.ndim == 1:  # data represents action sizes
                 N = data.size
-                # payoff_arrays filled with zeros
+                # N instances of Player created
+                # with payoff_arrays filled with zeros
                 # Payoff values set via __setitem__
                 self.players = [
-                    Player(data[np.arange(i, i+N) % N]) for i in range(N)
+                    Player(np.zeros(data[np.arange(i, i+N) % N]))
+                    for i in range(N)
                 ]
 
             elif data.ndim == 2:  # data represents a payoff array
