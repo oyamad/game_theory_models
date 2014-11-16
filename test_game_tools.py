@@ -97,9 +97,9 @@ class TestNormalFormGame_Asym2p:
 
     def setUp(self):
         """Setup a NormalFormGame instance"""
-        matching_pennies_matrix = [[( 1, -1), (-1,  1)],
-                                   [(-1,  1), ( 1, -1)]]
-        self.g = NormalFormGame(matching_pennies_matrix)
+        matching_pennies_bimatrix = [[( 1, -1), (-1,  1)],
+                                     [(-1,  1), ( 1, -1)]]
+        self.g = NormalFormGame(matching_pennies_bimatrix)
 
     def test_is_nash_pure(self):
         """is_nash with pure actions"""
@@ -127,6 +127,7 @@ def test_normalformgame_construction_action_sizes():
         g.players[2].payoff_array,
         np.zeros((4, 2, 3))
     )
+
 
 if __name__ == '__main__':
     import sys
