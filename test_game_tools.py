@@ -7,11 +7,12 @@ Tests for game_tools.py
 """
 from __future__ import division
 
+import numpy as np
 from numpy.testing import assert_array_equal
 import nose
-from nose.tools import eq_, ok_
+from nose.tools import eq_, ok_, raises
 
-from game_tools import Player, NormalFormGame, br_correspondence
+from game_tools import Player, NormalFormGame
 
 
 class TestPlayer_1opponent:
@@ -96,9 +97,9 @@ class TestNormalFormGame_Asym2p:
 
     def setUp(self):
         """Setup a NormalFormGame instance"""
-        matching_pennies_matrix = [[( 1, -1), (-1,  1)],
-                                   [(-1,  1), ( 1, -1)]]
-        self.g = NormalFormGame(matching_pennies_matrix)
+        matching_pennies_bimatrix = [[( 1, -1), (-1,  1)],
+                                     [(-1,  1), ( 1, -1)]]
+        self.g = NormalFormGame(matching_pennies_bimatrix)
 
     def test_is_nash_pure(self):
         """is_nash with pure actions"""
@@ -107,6 +108,42 @@ class TestNormalFormGame_Asym2p:
     def test_is_nash_mixed(self):
         """is_nash with mixed actions"""
         ok_(self.g.is_nash(([1/2, 1/2], [1/2, 1/2])))
+
+
+def test_normalformgame_input_action_sizes():
+    g = NormalFormGame((2, 3, 4))
+
+    eq_(g.N, 3)  # Number of players
+
+    assert_array_equal(
+        g.players[0].payoff_array,
+        np.zeros((2, 3, 4))
+    )
+    assert_array_equal(
+        g.players[1].payoff_array,
+        np.zeros((3, 4, 2))
+    )
+    assert_array_equal(
+        g.players[2].payoff_array,
+        np.zeros((4, 2, 3))
+    )
+
+
+@raises(ValueError)
+def test_normalformgame_invalid_input_players():
+    p0 = Player(np.zeros((2, 3)))
+    p1 = Player(np.zeros((2, 3)))
+    g = NormalFormGame([p0, p1])
+
+
+@raises(ValueError)
+def test_normalformgame_invalid_input_nosquare_matrix():
+    g = NormalFormGame(np.zeros((2, 3)))
+
+
+@raises(ValueError)
+def test_normalformgame_invalid_input_payoff_profiles():
+    g = NormalFormGame(np.zeros((2, 2, 1)))
 
 
 if __name__ == '__main__':
