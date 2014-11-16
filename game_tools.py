@@ -222,8 +222,8 @@ class NormalFormGame(object):
                     # Number of actions must be >= 2
                     if data.shape[0] != data.shape[1]:
                         raise ValueError(
-                            'symmetric two-player game must be represented' +
-                            ' by a square matrix'
+                            'symmetric two-player game must be represented ' +
+                            'by a square matrix'
                         )
                     N = 2
                     self.players = [Player(data) for i in range(N)]
@@ -231,7 +231,15 @@ class NormalFormGame(object):
                     raise ValueError
 
             else:  # data represents a payoff array
+                # data must be of shape (n_0, ..., n_{N-1}, N),
+                # where n_i is the number of actions available to player i,
+                # and the last axis contains the payoff profile
                 N = data.ndim - 1
+                if data.shape[-1] != N:
+                    raise ValueError(
+                        'size of innermost array must be equal to ' +
+                        'the number of players'
+                    )
                 self.players = [
                     Player(
                         data.take(i, axis=-1).transpose(np.arange(i, i+N) % N)
