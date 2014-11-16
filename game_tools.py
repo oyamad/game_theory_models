@@ -197,6 +197,24 @@ class NormalFormGame(object):
                     Player(data[np.arange(i, i+N) % N]) for i in range(N)
                 ]
 
+            elif data.ndim == 2:  # data represents a payoff array
+                if data.shape[1] == 1:
+                    # Degenerate game consisting of one player
+                    N = 1
+                    self.players = [Player(data)]
+                elif data.shape[1] >= 2:
+                    # Symmetric two-player game
+                    # Number of actions must be >= 2
+                    if data.shape[0] != data.shape[1]:
+                        raise ValueError(
+                            'symmetric two-player game must be represented' +
+                            ' by a square matrix'
+                        )
+                    N = 2
+                    self.players = [Player(data) for i in range(N)]
+                else:
+                    raise ValueError
+
             else:  # data represents a payoff array
                 N = data.ndim - 1
                 self.players = [
