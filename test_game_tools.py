@@ -12,7 +12,7 @@ from numpy.testing import assert_array_equal
 import nose
 from nose.tools import eq_, ok_, raises
 
-from game_tools import Player, NormalFormGame, br_correspondence
+from game_tools import Player, NormalFormGame
 
 
 class TestPlayer_1opponent:

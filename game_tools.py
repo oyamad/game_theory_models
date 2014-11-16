@@ -96,23 +96,27 @@ class Player(object):
         Return an array of payoff values, one for each own action, given
         a profile of the opponents' actions.
 
-        TO BE IMPLEMENTED
-
         """
-        N = self.payoff_array.ndim
-        if N == 2:
-            if isinstance(opponents_actions, int):
-                return self.payoff_array[:, opponents_actions]
-            else:
-                return self.payoff_array.dot(opponents_actions)
+        def reduce_last_player(payoff_array, action):
+            """
+            Given `payoff_array` with ndim=M, return the payoff array
+            with ndim=M-1 fixing the last player's action to be `action`
+            """
+            if isinstance(action, int):  # pure action
+                return payoff_array.take(action, axis=-1)
+            else:  # mixed action
+                return payoff_array.dot(action)
+
+        if self.num_opponents == 1:
+            payoff_vec = \
+                reduce_last_player(self.payoff_array, opponents_actions)
         else:
             payoff_vec = self.payoff_array
-            for i in reversed(range(N-1)):
-                if isinstance(opponents_actions[i], int):
-                    payoff_vec = payoff_vec.take(opponents_actions[i], axis=-1)
-                else:
-                    payoff_vec = payoff_vec.dot(opponents_actions[i])
-            return payoff_vec
+            for i in reversed(range(self.num_opponents)):
+                payoff_vec = \
+                    reduce_last_player(payoff_vec, opponents_actions[i])
+
+        return payoff_vec
 
     def is_best_response(self, own_action, opponents_actions):
         """
@@ -131,21 +135,41 @@ class Player(object):
     def best_response(self, opponents_actions,
                       tie_breaking=True, payoff_perturbations=None):
         """
-        Return the best response actions to `opponents_actions`.
+        Return the best response action(s) to `opponents_actions`.
+
+        TODO: Revise Docstring.
 
         Parameters
         ----------
+        opponents_actions : array_like(float, ndim=1 or 2) or
+                            array_like(int, ndim=1) or scalar(int)
+            A profile of N-1 opponents' actions. If N=2, then it must be
+            a 1-dimensional array_like of floats (in which case it is
+            treated as the opponent's mixed action) or a scalar of
+            integer (in which case it is treated as the opponent's pure
+            action). If N>2, then it must be a 2-dimensional array_like
+            of floats (profile of mixed actions) or a 1-dimensional
+            array_like of integers (profile of pure actions).
+
+        tie_breaking : bool
 
         Returns
         -------
+        int or ndarray(int, ndim=1)
+            If tie_breaking=True, returns an integer representing a best
+            response pure action (when there are more than one best
+            responses, one action is randomly chosen);
+            if tie_breaking=False, returns an array of all the best
+            response pure actions.
 
         """
-        br_actions = br_correspondence(opponents_actions, self.payoff_array)
+        payoff_vec = self.payoff_vector(opponents_actions)
+        best_responses = np.where(np.isclose(payoff_vec, payoff_vec.max()))[0]
 
         if tie_breaking:
-            return random_choice(br_actions)
+            return random_choice(best_responses)
         else:
-            return br_actions
+            return best_responses
 
     def random_choice(self):
         """
@@ -284,52 +308,6 @@ class NormalFormGame(object):
             action_profile_permed.append(own_action)
 
         return True
-
-
-def br_correspondence(opponents_actions, payoffs):
-    """
-    Best response correspondence in pure actions. It returns a list of
-    the pure best responses to a profile of N-1 opponents' actions.
-
-    TODO: Revise Docstring.
-
-    Parameters
-    ----------
-    opponents_actions : array_like(float, ndim=1 or 2) or
-                        array_like(int, ndim=1) or scalar(int)
-        A profile of N-1 opponents' actions. If N=2, then it must be a
-        1-dimensional array_like of floats (in which case it is treated
-        as the opponent's mixed action) or a scalar of integer (in which
-        case it is treated as the opponent's pure action). If N>2, then
-        it must be a 2-dimensional array_like of floats (profile of
-        mixed actions) or a 1-dimensional array_like of integers
-        (profile of pure actions).
-
-    payoffs : array_like(float, ndim=N)
-        An N-dimensional array_like representing the player's payoffs.
-
-    Returns
-    -------
-    ndarray(int)
-        An array of the pure action best responses to opponents_actions.
-
-    """
-    payoffs_ndarray = np.asarray(payoffs)
-    N = payoffs_ndarray.ndim
-    if N == 2:
-        if isinstance(opponents_actions, int):
-            payoff_vec = payoffs_ndarray[:, opponents_actions]
-        else:
-            payoff_vec = payoffs_ndarray.dot(opponents_actions)
-    else:
-        payoff_vec = payoffs_ndarray
-        for i in reversed(range(N-1)):
-            if isinstance(opponents_actions[i], int):
-                payoff_vec = payoff_vec.take(opponents_actions[i], axis=-1)
-            else:
-                payoff_vec = payoff_vec.dot(opponents_actions[i])
-
-    return np.where(np.isclose(payoff_vec, payoff_vec.max()))[0]
 
 
 def random_choice(actions):
