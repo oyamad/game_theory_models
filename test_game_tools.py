@@ -15,6 +15,8 @@ from nose.tools import eq_, ok_, raises
 from game_tools import Player, NormalFormGame
 
 
+# Player #
+
 class TestPlayer_1opponent:
     """Test the methods of Player with one opponent player"""
 
@@ -75,6 +77,8 @@ class TestPlayer_2opponents:
         )
 
 
+# NormalFormGame #
+
 class TestNormalFormGame_Sym2p:
     """Test the methods of NormalFormGame with symmetric two players"""
 
@@ -108,6 +112,28 @@ class TestNormalFormGame_Asym2p:
     def test_is_nash_mixed(self):
         """is_nash with mixed actions"""
         ok_(self.g.is_nash(([1/2, 1/2], [1/2, 1/2])))
+
+
+class TestNormalFormGame_3p:
+    """Test the methods of NormalFormGame with three players"""
+
+    def setUp(self):
+        """Setup a NormalFormGame instance"""
+        payoffs_2opponents = [[[3, 6],
+                               [4, 2]],
+                              [[1, 0],
+                               [5, 7]]]
+        player = Player(payoffs_2opponents)
+        self.g = NormalFormGame([player for i in range(3)])
+
+    def test_is_nash_pure(self):
+        """is_nash with pure actions"""
+        ok_(self.g.is_nash((0, 0, 0)))
+
+    def test_is_nash_mixed(self):
+        """is_nash with mixed actions"""
+        p = (1 + np.sqrt(65)) / 16
+        ok_(self.g.is_nash(([1 - p, p], [1 - p, p], [1 - p, p])))
 
 
 def test_normalformgame_input_action_sizes():

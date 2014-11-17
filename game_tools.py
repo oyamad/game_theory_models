@@ -295,16 +295,28 @@ class NormalFormGame(object):
         Return True if `action_profile` is a Nash equilibrium.
 
         """
-        action_profile_permed = list(action_profile)
+        if self.N == 2:
+            for i, player in enumerate(self.players):
+                own_action, opponent_action = \
+                    action_profile[i], action_profile[1-i]
+                if not player.is_best_response(own_action, opponent_action):
+                    return False
 
-        for i, player in enumerate(self.players):
-            own_action = action_profile_permed.pop(0)
-            opponents_actions = action_profile_permed
+        elif self.N >= 3:
+            action_profile_permed = list(action_profile)
 
-            if not player.is_best_response(own_action, opponents_actions):
+            for i, player in enumerate(self.players):
+                own_action = action_profile_permed.pop(0)
+                opponents_actions = action_profile_permed
+
+                if not player.is_best_response(own_action, opponents_actions):
+                    return False
+
+                action_profile_permed.append(own_action)
+
+        else:  # Degenerate case with self.N == 1
+            if not self.players[0].is_best_response(action_profile[0], None):
                 return False
-
-            action_profile_permed.append(own_action)
 
         return True
 
