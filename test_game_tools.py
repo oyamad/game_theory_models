@@ -96,6 +96,9 @@ class TestNormalFormGame_Sym2p:
         coordination_game_matrix = [[4, 0], [3, 2]]
         self.g = NormalFormGame(coordination_game_matrix)
 
+    def test_getitem(self):
+        assert_array_equal(self.g[0, 1], [0, 3])
+
     def test_is_nash_pure(self):
         """is_nash with pure actions"""
         ok_(self.g.is_nash((0, 0)))
@@ -113,6 +116,9 @@ class TestNormalFormGame_Asym2p:
         matching_pennies_bimatrix = [[( 1, -1), (-1,  1)],
                                      [(-1,  1), ( 1, -1)]]
         self.g = NormalFormGame(matching_pennies_bimatrix)
+
+    def test_getitem(self):
+        assert_array_equal(self.g[1, 0], [-1, 1])
 
     def test_is_nash_pure(self):
         """is_nash with pure actions"""
@@ -134,6 +140,9 @@ class TestNormalFormGame_3p:
                                [5, 7]]]
         player = Player(payoffs_2opponents)
         self.g = NormalFormGame([player for i in range(3)])
+
+    def test_getitem(self):
+        assert_array_equal(self.g[0, 0, 1], [6, 4, 1])
 
     def test_is_nash_pure(self):
         """is_nash with pure actions"""
