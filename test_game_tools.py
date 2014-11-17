@@ -203,9 +203,16 @@ class TestNormalFormGame_1p:
 # Invalid inputs #
 
 @raises(ValueError)
-def test_normalformgame_invalid_input_players():
+def test_normalformgame_invalid_input_players_shape_inconsistent():
     p0 = Player(np.zeros((2, 3)))
     p1 = Player(np.zeros((2, 3)))
+    g = NormalFormGame([p0, p1])
+
+
+@raises(ValueError)
+def test_normalformgame_invalid_input_players_num_inconsistent():
+    p0 = Player(np.zeros((2, 2, 2)))
+    p1 = Player(np.zeros((2, 2, 2)))
     g = NormalFormGame([p0, p1])
 
 

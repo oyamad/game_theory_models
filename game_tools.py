@@ -213,8 +213,10 @@ class NormalFormGame(object):
             # Check that action_sizes are consistent
             action_sizes_0 = data[0].action_sizes
             for i in range(1, N):
+                action_sizes = data[i].action_sizes
                 if not (
-                    data[i].action_sizes ==
+                    len(action_sizes) == N and
+                    action_sizes ==
                     tuple(action_sizes_0[j] for j in np.arange(i, i+N) % N)
                 ):
                     raise ValueError(
