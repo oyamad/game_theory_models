@@ -108,15 +108,17 @@ class Player(object):
                 return payoff_array.dot(action)
 
         if self.num_opponents == 1:
-            payoff_vec = \
+            payoff_vector = \
                 reduce_last_player(self.payoff_array, opponents_actions)
-        else:
-            payoff_vec = self.payoff_array
+        elif self.num_opponents >= 2:
+            payoff_vector = self.payoff_array
             for i in reversed(range(self.num_opponents)):
-                payoff_vec = \
-                    reduce_last_player(payoff_vec, opponents_actions[i])
+                payoff_vector = \
+                    reduce_last_player(payoff_vector, opponents_actions[i])
+        else:  # Degenerate case with self.num_opponents == 0
+            payoff_vector = self.payoff_array
 
-        return payoff_vec
+        return payoff_vector
 
     def is_best_response(self, own_action, opponents_actions):
         """
@@ -163,8 +165,9 @@ class Player(object):
             response pure actions.
 
         """
-        payoff_vec = self.payoff_vector(opponents_actions)
-        best_responses = np.where(np.isclose(payoff_vec, payoff_vec.max()))[0]
+        payoff_vector = self.payoff_vector(opponents_actions)
+        best_responses = \
+            np.where(np.isclose(payoff_vector, payoff_vector.max()))[0]
 
         if tie_breaking:
             return random_choice(best_responses)
@@ -236,23 +239,16 @@ class NormalFormGame(object):
                     for i in range(N)
                 ]
 
-            elif data.ndim == 2:  # data represents a payoff array
-                if data.shape[1] == 1:
-                    # Degenerate game consisting of one player
-                    N = 1
-                    self.players = [Player(data)]
-                elif data.shape[1] >= 2:
-                    # Symmetric two-player game
-                    # Number of actions must be >= 2
-                    if data.shape[0] != data.shape[1]:
-                        raise ValueError(
-                            'symmetric two-player game must be represented ' +
-                            'by a square matrix'
-                        )
-                    N = 2
-                    self.players = [Player(data) for i in range(N)]
-                else:
-                    raise ValueError
+            elif data.ndim == 2 and data.shape[1] >= 2:
+                # data represents a payoff array for symmetric two-player game
+                # Number of actions must be >= 2
+                if data.shape[0] != data.shape[1]:
+                    raise ValueError(
+                        'symmetric two-player game must be represented ' +
+                        'by a square matrix'
+                    )
+                N = 2
+                self.players = [Player(data) for i in range(N)]
 
             else:  # data represents a payoff array
                 # data must be of shape (n_0, ..., n_{N-1}, N),
@@ -302,7 +298,7 @@ class NormalFormGame(object):
             own_action = action_profile_permed.pop(0)
             opponents_actions = action_profile_permed
 
-            if not player.is_best_response(own_action, opponents_actions[0]):
+            if not player.is_best_response(own_action, opponents_actions):
                 return False
 
             action_profile_permed.append(own_action)

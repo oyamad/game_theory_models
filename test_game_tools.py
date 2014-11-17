@@ -129,6 +129,53 @@ def test_normalformgame_input_action_sizes():
     )
 
 
+# Degenerate cases with one player #
+
+class TestPlayer_0opponents:
+    """Test for degenerate Player with no opponent player"""
+
+    def setUp(self):
+        """Setup a Player instance"""
+        payoffs = [0, 1]
+        self.player = Player(payoffs)
+
+    def test_payoff_vector(self):
+        """Degenerate player: payoff_vector"""
+        assert_array_equal(self.player.payoff_vector(None), [0, 1])
+
+    def test_is_best_response(self):
+        """Degenerate player: is_best_response"""
+        ok_(self.player.is_best_response(1, None))
+
+    def test_best_response(self):
+        """Degenerate player: best_response"""
+        eq_(self.player.best_response(None), 1)
+
+
+class TestNormalFormGame_1p:
+    """Test for degenerate NormalFormGame with a single player"""
+
+    def setUp(self):
+        """Setup a NormalFormGame instance"""
+        data = [[0], [1], [1]]
+        self.g = NormalFormGame(data)
+
+    def test_construction(self):
+        """Degenerate game: construction"""
+        ok_(self.g.N == 1)
+        assert_array_equal(self.g.players[0].payoff_array, [0, 1, 1])
+
+    def test_is_nash_pure(self):
+        """Degenerate game: is_nash with pure action"""
+        ok_(self.g.is_nash((1,)))
+
+    def test_is_nash_mixed(self):
+        """Degenerate game: is_nash with mixed action"""
+        ok_(self.g.is_nash(([0, 1/2, 1/2],)))
+
+
+# Invalid inputs #
+
 @raises(ValueError)
 def test_normalformgame_invalid_input_players():
     p0 = Player(np.zeros((2, 3)))
