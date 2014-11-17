@@ -170,7 +170,10 @@ class Player(object):
             np.where(np.isclose(payoff_vector, payoff_vector.max()))[0]
 
         if tie_breaking:
-            return random_choice(best_responses)
+            if len(best_responses) == 1:
+                return best_responses[0]
+            else:
+                return random_choice(best_responses)
         else:
             return best_responses
 
