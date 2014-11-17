@@ -310,7 +310,7 @@ class NormalFormGame(object):
 
             for i, player in enumerate(self.players):
                 own_action = action_profile[i]
-                opponents_actions = action_profile[np.arange(i, i+N) % N]
+                opponents_actions = action_profile[np.arange(i+1, i+N) % N]
 
                 if not player.is_best_response(own_action, opponents_actions):
                     return False

@@ -64,12 +64,21 @@ class TestPlayer_2opponents:
                                [5, 7]]]
         self.player = Player(payoffs_2opponents)
 
+    def test_payoff_vector(self):
+        """payoff_vector against a pure action profile"""
+        assert_array_equal(self.player.payoff_vector((0, 1)), [6, 0])
+
+    def test_is_best_response(self):
+        """is_best_response against a pure action profile"""
+        ok_(not self.player.is_best_response(0, (1, 0)))
+
     def test_best_response_against_pure(self):
-        """best_response against a pure action"""
+        """best_response against a pure action profile"""
         eq_(self.player.best_response((1, 1)), 1)
 
     def test_best_response_list_when_tie(self):
-        """best_response with tie_breaking=False"""
+        """best_response against a mixed action profile with tie_breaking=False
+        """
         assert_array_equal(
             sorted(self.player.best_response(([3/7, 4/7], [1/2, 1/2]),
                                              tie_breaking=False)),
@@ -129,6 +138,7 @@ class TestNormalFormGame_3p:
     def test_is_nash_pure(self):
         """is_nash with pure actions"""
         ok_(self.g.is_nash((0, 0, 0)))
+        ok_(not self.g.is_nash((0, 0, 1)))
 
     def test_is_nash_mixed(self):
         """is_nash with mixed actions"""
@@ -194,6 +204,7 @@ class TestNormalFormGame_1p:
     def test_is_nash_pure(self):
         """Degenerate game: is_nash with pure action"""
         ok_(self.g.is_nash((1,)))
+        ok_(not self.g.is_nash((0,)))
 
     def test_is_nash_mixed(self):
         """Degenerate game: is_nash with mixed action"""
