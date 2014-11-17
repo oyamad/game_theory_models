@@ -200,6 +200,17 @@ class TestNormalFormGame_1p:
         ok_(self.g.is_nash(([0, 1/2, 1/2],)))
 
 
+def test_normalformgame_input_action_sizes_1p():
+    g = NormalFormGame(2)
+
+    eq_(g.N, 1)  # Number of players
+
+    assert_array_equal(
+        g.players[0].payoff_array,
+        np.zeros(2)
+    )
+
+
 # Invalid inputs #
 
 @raises(ValueError)

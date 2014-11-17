@@ -232,7 +232,7 @@ class NormalFormGame(object):
             if data.ndim == 0:  # data represents action size
                 # Degenerate game consisting of one player
                 N = 1
-                self.players = [Player(data)]
+                self.players = [Player(np.zeros(data))]
 
             elif data.ndim == 1:  # data represents action sizes
                 N = data.size
