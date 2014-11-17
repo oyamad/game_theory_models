@@ -26,11 +26,9 @@ class TestPlayer_1opponent:
         self.player = Player(coordination_game_matrix)
 
     def test_best_response_against_pure(self):
-        """best_response against a pure action"""
         eq_(self.player.best_response(1), 1)
 
     def test_best_response_against_mixed(self):
-        """best_response against a mixed action"""
         eq_(self.player.best_response([1/2, 1/2]), 1)
 
     def test_best_response_list_when_tie(self):
@@ -44,12 +42,10 @@ class TestPlayer_1opponent:
         """best_response with tie_breaking=True (default)"""
         ok_(self.player.best_response([2/3, 1/3]) in [0, 1])
 
-    def test_is_best_response_pure(self):
-        """is_best_response with pure actions"""
+    def test_is_best_response_against_pure(self):
         ok_(self.player.is_best_response(0, 0))
 
-    def test_is_best_response_mixed(self):
-        """is_best_response with mixed actions"""
+    def test_is_best_response_against_mixed(self):
         ok_(self.player.is_best_response([1/2, 1/2], [2/3, 1/3]))
 
 
@@ -64,16 +60,13 @@ class TestPlayer_2opponents:
                                [5, 7]]]
         self.player = Player(payoffs_2opponents)
 
-    def test_payoff_vector(self):
-        """payoff_vector against a pure action profile"""
+    def test_payoff_vector_against_pure(self):
         assert_array_equal(self.player.payoff_vector((0, 1)), [6, 0])
 
-    def test_is_best_response(self):
-        """is_best_response against a pure action profile"""
+    def test_is_best_response_against_pure(self):
         ok_(not self.player.is_best_response(0, (1, 0)))
 
     def test_best_response_against_pure(self):
-        """best_response against a pure action profile"""
         eq_(self.player.best_response((1, 1)), 1)
 
     def test_best_response_list_when_tie(self):
@@ -100,11 +93,9 @@ class TestNormalFormGame_Sym2p:
         assert_array_equal(self.g[0, 1], [0, 3])
 
     def test_is_nash_pure(self):
-        """is_nash with pure actions"""
         ok_(self.g.is_nash((0, 0)))
 
     def test_is_nash_mixed(self):
-        """is_nash with mixed actions"""
         ok_(self.g.is_nash(([2/3, 1/3], [2/3, 1/3])))
 
 
@@ -120,12 +111,10 @@ class TestNormalFormGame_Asym2p:
     def test_getitem(self):
         assert_array_equal(self.g[1, 0], [-1, 1])
 
-    def test_is_nash_pure(self):
-        """is_nash with pure actions"""
+    def test_is_nash_against_pure(self):
         ok_(not self.g.is_nash((0, 0)))
 
-    def test_is_nash_mixed(self):
-        """is_nash with mixed actions"""
+    def test_is_nash_against_mixed(self):
         ok_(self.g.is_nash(([1/2, 1/2], [1/2, 1/2])))
 
 
@@ -145,12 +134,10 @@ class TestNormalFormGame_3p:
         assert_array_equal(self.g[0, 0, 1], [6, 4, 1])
 
     def test_is_nash_pure(self):
-        """is_nash with pure actions"""
         ok_(self.g.is_nash((0, 0, 0)))
         ok_(not self.g.is_nash((0, 0, 1)))
 
     def test_is_nash_mixed(self):
-        """is_nash with mixed actions"""
         p = (1 + np.sqrt(65)) / 16
         ok_(self.g.is_nash(([1 - p, p], [1 - p, p], [1 - p, p])))
 
