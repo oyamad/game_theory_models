@@ -303,16 +303,15 @@ class NormalFormGame(object):
                     return False
 
         elif self.N >= 3:
-            action_profile_permed = list(action_profile)
+            action_profile = np.asarray(action_profile)
+            N = self.N
 
             for i, player in enumerate(self.players):
-                own_action = action_profile_permed.pop(0)
-                opponents_actions = action_profile_permed
+                own_action = action_profile[i]
+                opponents_actions = action_profile[np.arange(i, i+N) % N]
 
                 if not player.is_best_response(own_action, opponents_actions):
                     return False
-
-                action_profile_permed.append(own_action)
 
         else:  # Degenerate case with self.N == 1
             if not self.players[0].is_best_response(action_profile[0], None):
