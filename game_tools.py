@@ -108,15 +108,17 @@ class Player(object):
                 return payoff_array.dot(action)
 
         if self.num_opponents == 1:
-            payoff_vec = \
+            payoff_vector = \
                 reduce_last_player(self.payoff_array, opponents_actions)
-        else:
-            payoff_vec = self.payoff_array
+        elif self.num_opponents >= 2:
+            payoff_vector = self.payoff_array
             for i in reversed(range(self.num_opponents)):
-                payoff_vec = \
-                    reduce_last_player(payoff_vec, opponents_actions[i])
+                payoff_vector = \
+                    reduce_last_player(payoff_vector, opponents_actions[i])
+        else:  # Degenerate case with self.num_opponents == 0
+            payoff_vector = self.payoff_array
 
-        return payoff_vec
+        return payoff_vector
 
     def is_best_response(self, own_action, opponents_actions):
         """
@@ -163,8 +165,9 @@ class Player(object):
             response pure actions.
 
         """
-        payoff_vec = self.payoff_vector(opponents_actions)
-        best_responses = np.where(np.isclose(payoff_vec, payoff_vec.max()))[0]
+        payoff_vector = self.payoff_vector(opponents_actions)
+        best_responses = \
+            np.where(np.isclose(payoff_vector, payoff_vector.max()))[0]
 
         if tie_breaking:
             return random_choice(best_responses)
@@ -207,8 +210,10 @@ class NormalFormGame(object):
             # Check that action_sizes are consistent
             action_sizes_0 = data[0].action_sizes
             for i in range(1, N):
+                action_sizes = data[i].action_sizes
                 if not (
-                    data[i].action_sizes ==
+                    len(action_sizes) == N and
+                    action_sizes ==
                     tuple(action_sizes_0[j] for j in np.arange(i, i+N) % N)
                 ):
                     raise ValueError(
@@ -224,7 +229,7 @@ class NormalFormGame(object):
             if data.ndim == 0:  # data represents action size
                 # Degenerate game consisting of one player
                 N = 1
-                self.players = [Player(data)]
+                self.players = [Player(np.zeros(data))]
 
             elif data.ndim == 1:  # data represents action sizes
                 N = data.size
@@ -236,23 +241,16 @@ class NormalFormGame(object):
                     for i in range(N)
                 ]
 
-            elif data.ndim == 2:  # data represents a payoff array
-                if data.shape[1] == 1:
-                    # Degenerate game consisting of one player
-                    N = 1
-                    self.players = [Player(data)]
-                elif data.shape[1] >= 2:
-                    # Symmetric two-player game
-                    # Number of actions must be >= 2
-                    if data.shape[0] != data.shape[1]:
-                        raise ValueError(
-                            'symmetric two-player game must be represented ' +
-                            'by a square matrix'
-                        )
-                    N = 2
-                    self.players = [Player(data) for i in range(N)]
-                else:
-                    raise ValueError
+            elif data.ndim == 2 and data.shape[1] >= 2:
+                # data represents a payoff array for symmetric two-player game
+                # Number of actions must be >= 2
+                if data.shape[0] != data.shape[1]:
+                    raise ValueError(
+                        'symmetric two-player game must be represented ' +
+                        'by a square matrix'
+                    )
+                N = 2
+                self.players = [Player(data) for i in range(N)]
 
             else:  # data represents a payoff array
                 # data must be of shape (n_0, ..., n_{N-1}, N),
@@ -296,16 +294,27 @@ class NormalFormGame(object):
         Return True if `action_profile` is a Nash equilibrium.
 
         """
-        action_profile_permed = list(action_profile)
+        if self.N == 2:
+            for i, player in enumerate(self.players):
+                own_action, opponent_action = \
+                    action_profile[i], action_profile[1-i]
+                if not player.is_best_response(own_action, opponent_action):
+                    return False
 
-        for i, player in enumerate(self.players):
-            own_action = action_profile_permed.pop(0)
-            opponents_actions = action_profile_permed
+        elif self.N >= 3:
+            action_profile = np.asarray(action_profile)
+            N = self.N
 
-            if not player.is_best_response(own_action, opponents_actions[0]):
+            for i, player in enumerate(self.players):
+                own_action = action_profile[i]
+                opponents_actions = action_profile[np.arange(i+1, i+N) % N]
+
+                if not player.is_best_response(own_action, opponents_actions):
+                    return False
+
+        else:  # Degenerate case with self.N == 1
+            if not self.players[0].is_best_response(action_profile[0], None):
                 return False
-
-            action_profile_permed.append(own_action)
 
         return True
 
