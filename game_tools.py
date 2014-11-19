@@ -287,7 +287,14 @@ class NormalFormGame(object):
         """
         TO BE IMPLEMENTED
         """
-        pass
+        if len(action_profile) != self.N or len(payoff_profile) != self.N:
+            raise IndexError
+
+        index = np.asarray(action_profile)
+        N = self.N
+        for i, player in enumerate(self.players):
+            player.payoff_array[tuple(index[np.arange(i, i+N) % N])] = \
+                payoff_profile[i]
 
     def is_nash(self, action_profile):
         """
