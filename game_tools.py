@@ -91,6 +91,8 @@ class Player(object):
         self.action_sizes = self.payoff_array.shape
         self.num_actions = self.action_sizes[0]
 
+        self.tol = 1e-8
+
     def payoff_vector(self, opponents_actions):
         """
         Return an array of payoff values, one for each own action, given
@@ -130,9 +132,9 @@ class Player(object):
         payoff_max = payoff_vector.max()
 
         if isinstance(own_action, int):
-            return np.isclose(payoff_vector[own_action], payoff_max)
+            return payoff_vector[own_action] >= payoff_max - self.tol
         else:
-            return np.isclose(np.dot(own_action, payoff_vector), payoff_max)
+            return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
 
     def best_response(self, opponents_actions,
                       tie_breaking=True, payoff_perturbations=None):
@@ -167,7 +169,7 @@ class Player(object):
         """
         payoff_vector = self.payoff_vector(opponents_actions)
         best_responses = \
-            np.where(np.isclose(payoff_vector, payoff_vector.max()))[0]
+            np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
 
         if tie_breaking:
             return random_choice(best_responses)
