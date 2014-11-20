@@ -271,8 +271,11 @@ class NormalFormGame(object):
         self.N = N  # Number of players
 
     def __getitem__(self, action_profile):
-        if len(action_profile) != self.N:
-            raise IndexError
+        try:
+            if len(action_profile) != self.N:
+                raise IndexError('index must be of length N')
+        except TypeError:
+            raise TypeError('index must be a tuple')
 
         index = np.asarray(action_profile)
         N = self.N
@@ -284,11 +287,17 @@ class NormalFormGame(object):
         return payoff_profile
 
     def __setitem__(self, action_profile, payoff_profile):
-        """
-        TO BE IMPLEMENTED
-        """
-        if len(action_profile) != self.N or len(payoff_profile) != self.N:
-            raise IndexError
+        try:
+            if len(action_profile) != self.N:
+                raise IndexError('index must be of length N')
+        except TypeError:
+            raise TypeError('index must be a tuple')
+
+        try:
+            if len(payoff_profile) != self.N:
+                raise ValueError('value must be an array_like of length N')
+        except TypeError:
+            raise TypeError('value must be a tuple')
 
         index = np.asarray(action_profile)
         N = self.N
