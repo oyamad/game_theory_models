@@ -20,17 +20,22 @@ array([[ 1, -1],
 array([[-1,  1],
        [ 1, -1]])
 
->>> g = NormalFormGame((2, 3, 4))
+>>> g = NormalFormGame((2, 2))
 >>> g.players[0].payoff_array
-array([[[ 0.,  0.,  0.,  0.],
-        [ 0.,  0.,  0.,  0.],
-        [ 0.,  0.,  0.,  0.]],
-
-       [[ 0.,  0.,  0.,  0.],
-        [ 0.,  0.,  0.,  0.],
-        [ 0.,  0.,  0.,  0.]]])
->>> g[0, 0, 0]
-[0.0, 0.0, 0.0]
+array([[ 0.,  0.],
+       [ 0.,  0.]])
+>>> g[0, 0]
+[0.0, 0.0]
+>>> g[0, 0] = (0, 10)
+>>> g[0, 1] = (0, 10)
+>>> g[1, 0] = (3, 5)
+>>> g[1, 1] = (-2, 0)
+>>> g.players[0].payoff_array
+array([[ 0.,  0.],
+       [ 3., -2.]])
+>>> g.players[1].payoff_array
+array([[ 10.,   5.],
+       [ 10.,   0.]])
 
 Creating a Player
 -----------------
@@ -91,6 +96,8 @@ class Player(object):
         self.action_sizes = self.payoff_array.shape
         self.num_actions = self.action_sizes[0]
 
+        self.tol = 1e-8
+
     def payoff_vector(self, opponents_actions):
         """
         Return an array of payoff values, one for each own action, given
@@ -130,9 +137,9 @@ class Player(object):
         payoff_max = payoff_vector.max()
 
         if isinstance(own_action, int):
-            return np.isclose(payoff_vector[own_action], payoff_max)
+            return payoff_vector[own_action] >= payoff_max - self.tol
         else:
-            return np.isclose(np.dot(own_action, payoff_vector), payoff_max)
+            return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
 
     def best_response(self, opponents_actions,
                       tie_breaking=True, payoff_perturbations=None):
@@ -167,7 +174,7 @@ class Player(object):
         """
         payoff_vector = self.payoff_vector(opponents_actions)
         best_responses = \
-            np.where(np.isclose(payoff_vector, payoff_vector.max()))[0]
+            np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
 
         if tie_breaking:
             return random_choice(best_responses)
@@ -271,8 +278,11 @@ class NormalFormGame(object):
         self.N = N  # Number of players
 
     def __getitem__(self, action_profile):
-        if len(action_profile) != self.N:
-            raise IndexError
+        try:
+            if len(action_profile) != self.N:
+                raise IndexError('index must be of length N')
+        except TypeError:
+            raise TypeError('index must be a tuple')
 
         index = np.asarray(action_profile)
         N = self.N
@@ -284,10 +294,23 @@ class NormalFormGame(object):
         return payoff_profile
 
     def __setitem__(self, action_profile, payoff_profile):
-        """
-        TO BE IMPLEMENTED
-        """
-        pass
+        try:
+            if len(action_profile) != self.N:
+                raise IndexError('index must be of length N')
+        except TypeError:
+            raise TypeError('index must be a tuple')
+
+        try:
+            if len(payoff_profile) != self.N:
+                raise ValueError('value must be an array_like of length N')
+        except TypeError:
+            raise TypeError('value must be a tuple')
+
+        index = np.asarray(action_profile)
+        N = self.N
+        for i, player in enumerate(self.players):
+            player.payoff_array[tuple(index[np.arange(i, i+N) % N])] = \
+                payoff_profile[i]
 
     def is_nash(self, action_profile):
         """

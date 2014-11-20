@@ -161,6 +161,32 @@ def test_normalformgame_input_action_sizes():
     )
 
 
+def test_normalformgame_setitem():
+    g = NormalFormGame((2, 2))
+    g[0, 0] = (0, 10)
+    g[0, 1] = (0, 10)
+    g[1, 0] = (3, 5)
+    g[1, 1] = (-2, 0)
+
+    assert_array_equal(
+        g.players[0].payoff_array,
+        [[0, 0], [3, -2]]
+    )
+    assert_array_equal(
+        g.players[1].payoff_array,
+        [[10, 5], [10, 0]]
+    )
+
+
+def test_normalformgame_constant_payoffs():
+    g = NormalFormGame((2, 2))
+
+    ok_(g.is_nash((0, 0)))
+    ok_(g.is_nash((0, 1)))
+    ok_(g.is_nash((1, 0)))
+    ok_(g.is_nash((1, 1)))
+
+
 # Degenerate cases with one player #
 
 class TestPlayer_0opponents:
