@@ -165,12 +165,12 @@ def test_normalformgame_setitem():
     g = NormalFormGame((2, 2))
     g[0, 0] = (0, 10)
     g[0, 1] = (0, 10)
-    g[1, 0] = (5, 5)
-    g[1, 1] = (-10, 0)
+    g[1, 0] = (3, 5)
+    g[1, 1] = (-2, 0)
 
     assert_array_equal(
         g.players[0].payoff_array,
-        [[0, 0], [5, -10]]
+        [[0, 0], [3, -2]]
     )
     assert_array_equal(
         g.players[1].payoff_array,
