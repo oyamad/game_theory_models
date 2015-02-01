@@ -9,7 +9,6 @@ from __future__ import division
 
 import numpy as np
 from numpy.testing import assert_array_equal
-import nose
 from nose.tools import eq_, ok_, raises
 
 from game_tools import Player, NormalFormGame
@@ -272,6 +271,7 @@ def test_normalformgame_invalid_input_payoff_profiles():
 
 if __name__ == '__main__':
     import sys
+    import nose
 
     argv = sys.argv[:]
     argv.append('--verbose')
