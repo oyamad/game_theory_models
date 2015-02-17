@@ -166,7 +166,7 @@ class Player(object):
             return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
 
     def best_response(self, opponents_actions,
-                      tie_breaking='random', payoff_perturbations=None):
+                      tie_breaking=True, payoff_perturbations=None):
         """
         Return the best response action(s) to `opponents_actions`.
 
@@ -198,17 +198,16 @@ class Player(object):
         """
         payoff_vector = self.payoff_vector(opponents_actions)
 
-        if tie_breaking == 'random':
-            best_responses = \
-                np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
-            return random_choice(best_responses)
-        elif tie_breaking == 'argmax':
+        if tie_breaking == 'argmax':
             best_responses = np.argmax(payoff_vector)
             return best_responses
         else:
             best_responses = \
                 np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
-            return best_responses
+            if tie_breaking:
+                return random_choice(best_responses)
+            else:
+                return best_responses
 
     def random_choice(self, actions=None):
         """
