@@ -103,6 +103,22 @@ class Player(object):
         Return an array of payoff values, one for each own action, given
         a profile of the opponents' actions.
 
+        Parameters
+        ----------
+        opponents_actions : array_like(float, ndim=1 or 2) or
+                            array_like(int, ndim=1) or scalar(int)
+            A profile of N-1 opponents' actions. If N=2, then it must be
+            a 1-dimensional array_like of floats (in which case it is
+            treated as the opponent's mixed action) or a scalar of
+            integer (in which case it is treated as the opponent's pure
+            action). If N>2, then it must be a 2-dimensional array_like
+            of floats (profile of mixed actions) or a 1-dimensional
+            array_like of integers (profile of pure actions).
+
+        Returns
+        -------
+
+
         """
         def reduce_last_player(payoff_array, action):
             """
@@ -132,6 +148,14 @@ class Player(object):
         Return True if `own_action` is a best response to
         `opponents_actions`.
 
+        Parameters
+        ----------
+        own_action : int or array_like(float, ndim=1)
+            If int, it represents a pure action. If array_like, it represents
+            a mixed action.
+
+        opponents_actions : 
+
         """
         payoff_vector = self.payoff_vector(opponents_actions)
         payoff_max = payoff_vector.max()
@@ -142,7 +166,7 @@ class Player(object):
             return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
 
     def best_response(self, opponents_actions,
-                      tie_breaking=True, payoff_perturbations=None):
+                      tie_breaking='random', payoff_perturbations=None):
         """
         Return the best response action(s) to `opponents_actions`.
 
@@ -173,15 +197,20 @@ class Player(object):
 
         """
         payoff_vector = self.payoff_vector(opponents_actions)
-        best_responses = \
-            np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
 
-        if tie_breaking:
+        if tie_breaking == 'random':
+            best_responses = \
+                np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
             return random_choice(best_responses)
+        elif tie_breaking == 'argmax':
+            best_responses = np.argmax(payoff_vector)
+            return best_responses
         else:
+            best_responses = \
+                np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
             return best_responses
 
-    def random_choice(self):
+    def random_choice(self, actions=None):
         """
         Return a pure action chosen at random from the player's actions.
 
@@ -192,7 +221,10 @@ class Player(object):
         -------
 
         """
-        return random_choice(range(self.num_actions))
+        if actions:
+            return random_choice(actions)
+        else:
+            return random_choice(range(self.num_actions))
 
 
 class NormalFormGame(object):
@@ -276,6 +308,15 @@ class NormalFormGame(object):
                 ]
 
         self.N = N  # Number of players
+        self.nums_actions = self.players[0].action_sizes
+
+    def __repr__(self):
+        if self.N == 2:
+            return "Payoff Matrix of Player 0:\n{0}\n".format(self.players[0].payoff_array) +
+                    "Payoff Matrix of Player 1:\n{0}".format(self.players[1].payoff_array)
+
+    def __str__(self):
+        return self.__repr__()
 
     def __getitem__(self, action_profile):
         try:
