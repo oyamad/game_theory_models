@@ -43,7 +43,7 @@ class TestPlayer_1opponent:
 
     def test_best_response_with_first_tie_breaking(self):
         """best_response with tie_breaking='first' (default)"""
-        eq_(self.player.best_response([2/3, 1/3], 0))
+        eq_(self.player.best_response([2/3, 1/3]), 0)
 
     def test_is_best_response_against_pure(self):
         ok_(self.player.is_best_response(0, 0))
