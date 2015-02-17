@@ -67,7 +67,7 @@ class Player(object):
     Attributes
     ----------
     payoff_array : ndarray(float, ndim=N)
-        Array representing the players payoffs.
+        Array representing the player's payoffs.
 
     num_actions : int
         The number of actions available to the player.
@@ -76,15 +76,8 @@ class Player(object):
         The number of opponent players.
 
     action_sizes : tuple(int)
-        Tuple representing the number of actions of each player.
-
-    Examples
-    --------
-    >>> P = game_tools.Player([[4,0,6], [3,2,5]])
-    >>> P
-    Player_2P:
-        payoff_matrix: array([[4,0,6],[3,2,5]])
-        num_actions: 2L
+        Tuple of length N representing the numbers of actions of the
+        players.
 
     """
     def __init__(self, payoff_array):
@@ -99,6 +92,20 @@ class Player(object):
 
         self.tol = 1e-8
 
+    def __repr__(self):
+        N = self.num_opponents + 1
+        msg = "Player in a {0}-player normal form game".format(N)
+
+        if N == 2:
+            matrix_str = \
+                " with payoff matrix:\n{0}".format(self.payoff_array.tolist())
+            msg += matrix_str
+
+        return msg
+
+    def __str__(self):
+        return self.__repr__()
+
     def payoff_vector(self, opponents_actions):
         """
         Return an array of payoff values, one for each own action, given
@@ -106,30 +113,20 @@ class Player(object):
 
         Parameters
         ----------
-        opponents_actions : array_like(float, ndim=1 or 2) or
-                            array_like(int, ndim=1) or scalar(int)
-            A profile of N-1 opponents' actions. If N=2, then it must be
-            a 1-dimensional array_like of floats (in which case it is
-            treated as the opponent's mixed action) or a scalar of
-            integer (in which case it is treated as the opponent's pure
-            action). If N>2, then it must be a 2-dimensional array_like
-            of floats (profile of mixed actions) or a 1-dimensional
-            array_like of integers (profile of pure actions).
+        opponents_actions : see `best_response`
 
         Returns
         -------
         payoff_vector : ndarray(float, ndim=1)
-            If there are at least one opponents (self.num_opponents >= 1), 
-            returns an array representing the player's payoffs given the 
-            profile of the opponents' actions;
-            if there are no opponents (self.num_opponents == 0),
-            returns the original own payoffs.
+            An array representing the player's payoff vector given the
+            profile of the opponents' actions.
 
         """
         def reduce_last_player(payoff_array, action):
             """
             Given `payoff_array` with ndim=M, return the payoff array
             with ndim=M-1 fixing the last player's action to be `action`
+
             """
             if isinstance(action, int):  # pure action
                 return payoff_array.take(action, axis=-1)
@@ -157,15 +154,16 @@ class Player(object):
         Parameters
         ----------
         own_action : int or array_like(float, ndim=1)
-            If int, represents a pure action;
-            if array_like, represents a mixed action.
+            An integer representing a pure action, or an array_like
+            representing a mixed action.
 
-        opponents_actions : array_like(float, ndim=1 or 2) or
-                            array_like(int, ndim=1) or scalar(int)
+        opponents_actions : see `best_response`
 
         Returns
         -------
         bool
+            True if `own_action` is a best response to
+            `opponents_actions`; False otherwise.
 
         """
         payoff_vector = self.payoff_vector(opponents_actions)
@@ -176,36 +174,40 @@ class Player(object):
         else:
             return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
 
-    def best_response(self, opponents_actions,
-                      tie_breaking='first', payoff_perturbations=None):
+    def best_response(self, opponents_actions, tie_breaking='smallest',
+                      payoff_perturbations=None):
         """
         Return the best response action(s) to `opponents_actions`.
 
-        TODO: Revise Docstring.
-
         Parameters
         ----------
-        opponents_actions : array_like(float, ndim=1 or 2) or
+        opponents_actions : array_like(int or array_like(float)) or
                             array_like(int, ndim=1) or scalar(int)
+            A profile of N-1 opponents' actions. If N=2, then it must be
+            a 1-dimensional array of floats (in which case it is treated
+            as the opponent's mixed action) or a scalar of integer (in
+            which case it is treated as the opponent's pure action). If
+            N>2, then it must be an array of N-1 objects, where each
+            object must be an integer (pure action) or an array of
+            floats (mixed action).
 
-        tie_breaking : bool
+        tie_breaking : {'smallest', 'random', False}
 
         Returns
         -------
         int or ndarray(int, ndim=1)
-            If tie_breaking='first' or 'random', returns an integer 
-            representing a best response pure action (when there are more
-            than one best responses, 'first' chooses the smallest action 
-            and 'random' chooses one action randomly);
-            if tie_breaking=False, returns an array of all the best
-            response pure actions.
+            If tie_breaking=False, returns an array containing all the
+            best response pure actions. If tie_breaking='smallest',
+            returns the best response action with the smallest index; if
+            tie_breaking='random', returns an action randomly chosen
+            from the best response actions.
 
         """
         payoff_vector = self.payoff_vector(opponents_actions)
 
-        if tie_breaking == 'first':
-            best_responses = np.argmax(payoff_vector)
-            return best_responses
+        if tie_breaking == 'smallest':
+            best_response = np.argmax(payoff_vector)
+            return best_response
         else:
             best_responses = \
                 np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
@@ -219,19 +221,18 @@ class Player(object):
 
     def random_choice(self, actions=None):
         """
-        Return a pure action chosen at random from a given player's actions.
+        Return a pure action chosen at random from `actions`.
 
         Parameters
         ----------
-        actions : list(int)
+        actions : array_like(int)
 
         Returns
         -------
         int
-            If `actions` is given, returns an integer representing a pure
-            action chosen randomly from the actions;
-            if not, the integer is chosen randomly from the player's all 
-            actions.
+            If `actions` is given, returns an integer representing a
+            pure action chosen randomly from `actions`; if not, an
+            action is chosen randomly from the player's all actions.
 
         """
         if actions:
@@ -242,36 +243,27 @@ class Player(object):
 
 class NormalFormGame(object):
     """
-    Class representing a two-player normal form game.
+    Class representing an N-player normal form game.
 
     Parameters
     ----------
-    data : tuple(?) or int or
-           array_like(float, ndim=1 or 2 or N+1)
+    data : array_like(Player) or array_like(int, ndim=1) or
+           array_like(float, ndim=2 or N+1)
 
     Attributes
     ----------
-    players : tuple(?)
-        Tuple representing the players of the game. 
+    players : tuple(Player)
+        Tuple of the Player instances of the game.
 
     N : int
         The number of players.
 
     nums_actions : tuple(int)
-        Tuple representing the number of actions, one for each players.
-
-    Examples
-    --------
-    >>> g = game_tools.NormalFormGame([[4,0], [3,2]])
-    >>> g
-    Coordination Game:
-        players: 
-        N: 2
-        nums_actions: (2L, 2L)
+        Tuple of the numbers of actions, one for each player.
 
     """
     def __init__(self, data):
-        # data represents a tuple of Players
+        # data represents an array_like of Players
         if hasattr(data, '__getitem__') and isinstance(data[0], Player):
             N = len(data)
 
@@ -297,17 +289,17 @@ class NormalFormGame(object):
             if data.ndim == 0:  # data represents action size
                 # Degenerate game consisting of one player
                 N = 1
-                self.players = tuple([Player(np.zeros(data))])
+                self.players = (Player(np.zeros(data)),)
 
             elif data.ndim == 1:  # data represents action sizes
                 N = data.size
                 # N instances of Player created
                 # with payoff_arrays filled with zeros
                 # Payoff values set via __setitem__
-                self.players = tuple([
+                self.players = tuple(
                     Player(np.zeros(data[np.arange(i, i+N) % N]))
                     for i in range(N)
-                ])
+                )
 
             elif data.ndim == 2 and data.shape[1] >= 2:
                 # data represents a payoff array for symmetric two-player game
@@ -318,7 +310,7 @@ class NormalFormGame(object):
                         'by a square matrix'
                     )
                 N = 2
-                self.players = tuple([Player(data) for i in range(N)])
+                self.players = tuple(Player(data) for i in range(N))
 
             else:  # data represents a payoff array
                 # data must be of shape (n_0, ..., n_{N-1}, N),
@@ -330,24 +322,29 @@ class NormalFormGame(object):
                         'size of innermost array must be equal to ' +
                         'the number of players'
                     )
-                self.players = tuple([
+                self.players = tuple(
                     Player(
                         data.take(i, axis=-1).transpose(np.arange(i, i+N) % N)
                     ) for i in range(N)
-                ])
+                )
 
         self.N = N  # Number of players
-        self.nums_actions = tuple([player.num_actions for player in self.players])
+        self.nums_actions = tuple(
+            player.num_actions for player in self.players
+        )
 
     def __repr__(self):
-        msg = "N = {0}".format(self.N)
+        msg = "{0}-player NormalFormGame".format(self.N)
+
         if self.N == 2:
             P0 = self.players[0].payoff_array
             P1 = self.players[1].payoff_array
             bimatrix = np.dstack((P0, P1.T))
-            return msg + "\nPayoff Matrix:\n{0}".format(bimatrix)
-        else:
-            return msg
+            bimatrix_str = \
+                " with payoff bimatrix:\n{0}".format(bimatrix.tolist())
+            msg += bimatrix_str
+
+        return msg
 
     def __str__(self):
         return self.__repr__()
@@ -393,11 +390,13 @@ class NormalFormGame(object):
 
         Parameters
         ----------
-        action_profile : list(int) or array_like(ndim=2)
+        action_profile : array_like(int) or array_like(ndim=2)
 
         Returns
         -------
         bool
+            True if `action_profile` is a Nash equilibrium; False
+            otherwise.
 
         """
         if self.N == 2:
@@ -427,17 +426,17 @@ class NormalFormGame(object):
 
 def random_choice(actions):
     """
-    Choose an action randomly from given actions.
+    Choose an action randomly from `actions`.
 
     Parameters
     ----------
-    actions : list(int)
-        A list of pure actions represented by nonnegative integers.
+    actions : array_like(int)
+        An array of pure actions represented by nonnegative integers.
 
     Returns
     -------
     int
-        A pure action chosen at random from given actions.
+        A pure action randomly chosen from `actions`.
 
     """
     if len(actions) == 1:
@@ -453,16 +452,15 @@ def pure2mixed(num_actions, action):
     Parameters
     ----------
     num_actions : int
-        The number of pure actions.
+        The number of the pure actions (= the length of a mixed action).
 
     action : int
-        The pure action you want to convert to the corresponding
-        mixed action.
+        The pure action to convert to the corresponding mixed action.
 
     Returns
     -------
-    ndarray(int) <- float?
-        The corresponding mixed action for the given pure action.
+    ndarray(float, ndim=1)
+        The mixed action representation of the given pure action.
 
     """
     mixed_action = np.zeros(num_actions)
