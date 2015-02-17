@@ -249,6 +249,16 @@ class NormalFormGame(object):
     ----------
     data : array_like(Player) or array_like(int, ndim=1) or
            array_like(float, ndim=2 or N+1)
+        Data to initialize a NormalFormGame. `data` may be an array of
+        Players, in which case the shapes of the Players' payoff arrays
+        must be consistent. If `data` is an array of N integers, then
+        these integers are treated as the numbers of actions of the N
+        players and a NormalFormGame is created consisting of payoffs
+        all 0 with `data[i]` actions for each `i`-th player. `data` may
+        also be an (N+1)-dimensional array representing payoff profiles.
+        If `data` is a symmetric matrix (2-dimensional array), then the
+        game will be a symmetric two-player game where the payoff matrix
+        of each player is given by the input matrix.
 
     Attributes
     ----------
