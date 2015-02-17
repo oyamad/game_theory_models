@@ -258,7 +258,7 @@ class NormalFormGame(object):
                         'shapes of payoff arrays must be consistent'
                     )
 
-            self.players = list(data)
+            self.players = tuple(data)
 
         # data represents action sizes or a payoff array
         else:
@@ -267,17 +267,17 @@ class NormalFormGame(object):
             if data.ndim == 0:  # data represents action size
                 # Degenerate game consisting of one player
                 N = 1
-                self.players = [Player(np.zeros(data))]
+                self.players = tuple([Player(np.zeros(data))])
 
             elif data.ndim == 1:  # data represents action sizes
                 N = data.size
                 # N instances of Player created
                 # with payoff_arrays filled with zeros
                 # Payoff values set via __setitem__
-                self.players = [
+                self.players = tuple([
                     Player(np.zeros(data[np.arange(i, i+N) % N]))
                     for i in range(N)
-                ]
+                ])
 
             elif data.ndim == 2 and data.shape[1] >= 2:
                 # data represents a payoff array for symmetric two-player game
@@ -288,7 +288,7 @@ class NormalFormGame(object):
                         'by a square matrix'
                     )
                 N = 2
-                self.players = [Player(data) for i in range(N)]
+                self.players = tuple([Player(data) for i in range(N)])
 
             else:  # data represents a payoff array
                 # data must be of shape (n_0, ..., n_{N-1}, N),
@@ -300,18 +300,18 @@ class NormalFormGame(object):
                         'size of innermost array must be equal to ' +
                         'the number of players'
                     )
-                self.players = [
+                self.players = tuple([
                     Player(
                         data.take(i, axis=-1).transpose(np.arange(i, i+N) % N)
                     ) for i in range(N)
-                ]
+                ])
 
         self.N = N  # Number of players
         self.nums_actions = self.players[0].action_sizes
 
     def __repr__(self):
         if self.N == 2:
-            return "Payoff Matrix of Player 0:\n{0}\n".format(self.players[0].payoff_array) +
+            return "Payoff Matrix of Player 0:\n{0}\n".format(self.players[0].payoff_array) + \
                     "Payoff Matrix of Player 1:\n{0}".format(self.players[1].payoff_array)
 
     def __str__(self):
