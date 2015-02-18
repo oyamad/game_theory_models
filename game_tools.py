@@ -8,6 +8,52 @@ Tools for Game Theory.
 Definitions and Basic Concepts
 ------------------------------
 
+An :math:`N`-player *normal form game* :math:`g = (I, (A_i)_{i \in I},
+(u_i)_{i \in I})` consists of
+
+- the set of *players* :math:`I = \{0, \ldots, N-1\}`,
+- the set of *actions* :math:`A_i = \{0, \ldots, n_i-1\}` for each
+  player :math:`i \in I`, and
+- the *payoff function* :math:`u_i \colon A_i \times A_{i+1} \times
+  \cdots \times A_{i+N-1} \to \mathbb{R}` for each player :math:`i \in
+  I`,
+
+where :math:`i+j` is understood modulo :math:`N`. Note that we adopt the
+convention that the 0-th argument of the payoff function :math:`u_i` is
+player :math:`i`'s own action and the :math:`j`-th argument is player
+(:math:`i+j`)'s action (modulo :math:`N`). A mixed action for player
+:math:`i` is a probability distribution on :math:`A_i` (while an element
+of :math:`A_i` is referred to as a pure action). A pure action
+:math:`a_i \in A_i` is identified with the mixed action that assigns
+probability one to :math:`a_i`. Denote the set of mixed actions of
+player :math:`i` by :math:`X_i`. We also denote :math:`A_{-i} = A_{i+1}
+\times \cdots \times A_{i+N-1}` and :math:`X_{-i} = X_{i+1} \times
+\cdots \times X_{i+N-1}`.
+
+The (pure-action) *best response correspondence* :math:`b_i \colon
+X_{-i} \to A_i` for each player :math:`i` is defined by
+
+.. math::
+
+    b_i(x_{-i}) = \{a_i \in A_i \mid
+        u_i(a_i, x_{-i}) \geq u_i(a_i', x_{-i})
+        \ \forall\,a_i' \in A_i\},
+
+where :math:`u_i(a_i, x_{-i}) = \sum_{a_{-i} \in A_{-i}} u_i(a_i,
+a_{-i}) \prod_{j=1}^{N-1} x_{i+j}(a_j)` is the expected payoff to action
+:math:`a_i` against mixed actions :math:`x_{-i}`. A profile of mixed
+actions :math:`x^* \in X_0 \times \cdots \times X_{N-1}` is a *Nash
+equilibrium* if for all :math:`i \in I` and :math:`a_i \in A_i`,
+
+.. math::
+
+    x_i^*(a_i) > 0 \Rightarrow a_i \in b_i(x_{-i}^*),
+
+or equivalently, :math:`x_i^* \cdot v_i(x_{-i}^*) \geq x_i \cdot
+v_i(x_{-i}^*)` for all :math:`x_i \in X_i`, where :math:`v_i(x_{-i})` is
+the vector of player :math:`i`'s payoffs when the opponent players play
+mixed actions :math:`x_{-i}`.
+
 Creating a NormalFormGame
 -------------------------
 
@@ -67,7 +113,7 @@ class Player(object):
     Attributes
     ----------
     payoff_array : ndarray(float, ndim=N)
-        Array representing the player's payoffs.
+        Array representing the player's payoff function.
 
     num_actions : int
         The number of actions available to the player.
@@ -256,7 +302,7 @@ class NormalFormGame(object):
         players and a NormalFormGame is created consisting of payoffs
         all 0 with `data[i]` actions for each `i`-th player. `data` may
         also be an (N+1)-dimensional array representing payoff profiles.
-        If `data` is a symmetric matrix (2-dimensional array), then the
+        If `data` is a square matrix (2-dimensional array), then the
         game will be a symmetric two-player game where the payoff matrix
         of each player is given by the input matrix.
 
