@@ -125,19 +125,6 @@ class Player(object):
         Tuple of length N representing the numbers of actions of the
         players.
 
-    Methods
-    -------
-    payoff_vector : Return an array of payoff values, one for each own 
-        action, given a profile of the opponents' actions.
-
-    is_best_response : Return True if `own_action` is a best response to
-        `opponents_actions`.
-
-    best_response : Return the best response action(s) to 
-        `opponents_actions`.
-
-    random_choice : Return a pure action chosen at random from `actions`.
-
     """
     def __init__(self, payoff_array):
         self.payoff_array = np.asarray(payoff_array)
@@ -330,10 +317,6 @@ class NormalFormGame(object):
 
     nums_actions : tuple(int)
         Tuple of the numbers of actions, one for each player.
-
-    Methods
-    -------
-    is_nash : Return True if `action_profile` is a Nash equilibrium.
 
     """
     def __init__(self, data):
