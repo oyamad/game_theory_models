@@ -115,10 +115,10 @@ class Player(object):
     payoff_array : ndarray(float, ndim=N)
         Array representing the player's payoff function.
 
-    num_actions : int
+    num_actions : scalar(int)
         The number of actions available to the player.
 
-    num_opponents : int
+    num_opponents : scalar(int)
         The number of opponent players.
 
     action_sizes : tuple(int)
@@ -199,7 +199,7 @@ class Player(object):
 
         Parameters
         ----------
-        own_action : int or array_like(float, ndim=1)
+        own_action : scalar(int) or array_like(float, ndim=1)
             An integer representing a pure action, or an array_like
             representing a mixed action.
 
@@ -241,7 +241,7 @@ class Player(object):
 
         Returns
         -------
-        int or ndarray(int, ndim=1)
+        scalar(int) or ndarray(int, ndim=1)
             If tie_breaking=False, returns an array containing all the
             best response pure actions. If tie_breaking='smallest',
             returns the best response action with the smallest index; if
@@ -262,7 +262,7 @@ class Player(object):
             elif tie_breaking is False:
                 return best_responses
             else:
-                msg = "tie_breaking must be one of 'first', 'random' or False"
+                msg = "tie_breaking must be one of 'smallest', 'random' or False"
                 raise ValueError(msg)
 
     def random_choice(self, actions=None):
@@ -272,10 +272,11 @@ class Player(object):
         Parameters
         ----------
         actions : array_like(int)
+            An array of integers representing pure actions.
 
         Returns
         -------
-        int
+        scalar(int)
             If `actions` is given, returns an integer representing a
             pure action chosen randomly from `actions`; if not, an
             action is chosen randomly from the player's all actions.
@@ -311,7 +312,7 @@ class NormalFormGame(object):
     players : tuple(Player)
         Tuple of the Player instances of the game.
 
-    N : int
+    N : scalar(int)
         The number of players.
 
     nums_actions : tuple(int)
@@ -446,7 +447,9 @@ class NormalFormGame(object):
 
         Parameters
         ----------
-        action_profile : array_like(int) or array_like(ndim=2)
+        action_profile : array_like(int or array_like(float))
+            An array of N objects, where each object must be an integer 
+            (pure action) or an array of floats (mixed action).
 
         Returns
         -------
@@ -491,7 +494,7 @@ def random_choice(actions):
 
     Returns
     -------
-    int
+    scalar(int)
         A pure action randomly chosen from `actions`.
 
     """
@@ -507,10 +510,10 @@ def pure2mixed(num_actions, action):
 
     Parameters
     ----------
-    num_actions : int
+    num_actions : scalar(int)
         The number of the pure actions (= the length of a mixed action).
 
-    action : int
+    action : scalar(int)
         The pure action to convert to the corresponding mixed action.
 
     Returns
