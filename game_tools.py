@@ -59,7 +59,7 @@ Creating a NormalFormGame
 
 There are three ways to construct a `NormalFormGame` instance.
 
-1. Pass an array of payoffs for all the players
+The first is to pass an array of payoffs for all the players:
 
 >>> matching_pennies_bimatrix = [[(1, -1), (-1, 1)], [(-1, 1), (1, -1)]]
 >>> g = NormalFormGame(matching_pennies_bimatrix)
@@ -70,63 +70,54 @@ array([[ 1, -1],
 array([[-1,  1],
        [ 1, -1]])
 
-For symmetric games, it is sufficient to pass a payoff array of one
-player:
+If a square matrix (2-dimensional array) is given, then it is considered
+to be a symmetric two-player game:
 
->>> RPS_matrix = [[ 0, -1,  1],
-                  [ 1,  0, -1],
-                  [-1,  1,  0]]
->>> g = NormalFormGame(RPS_matrix)
+>>> coordination_game_matrix = [[4, 0], [3, 2]]
+>>> g = NormalFormGame(coordination_game_matrix)
+>>> g
+2-player NormalFormGame with payoff bimatrix:
+[[[4, 4], [0, 3]], [[3, 0], [2, 2]]]
 
-2. Set the payoffs after creating a `NormalFormGame` instance
-
-First, create a `NormalFormGame` instance filled with payoff zeros by
-specifying the sizes of the action sets of the players. After that, 
-set the payoff values to each entry.
+The second is to specify the sizes of the action sets of the players,
+which gives a `NormalFormGame` instance filled with payoff zeros, and
+then set the payoff values to each entry:
 
 >>> g = NormalFormGame((2, 2))
->>> g.players[0].payoff_array
-array([[ 0.,  0.],
-       [ 0.,  0.]])
->>> g[0, 0]
-[0.0, 0.0]
->>> g[0, 0] = (0, 10)
->>> g[0, 1] = (0, 10)
->>> g[1, 0] = (3, 5)
->>> g[1, 1] = (-2, 0)
->>> g.players[0].payoff_array
-array([[ 0.,  0.],
-       [ 3., -2.]])
->>> g.players[1].payoff_array
-array([[ 10.,   5.],
-       [ 10.,   0.]])
+>>> g
+2-player NormalFormGame with payoff bimatrix:
+[[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]
+>>> g[0, 0] = 1, 1
+>>> g[0, 1] = -2, 3
+>>> g[1, 0] = 3, -2
+>>> g
+2-player NormalFormGame with payoff bimatrix:
+[[[1.0, 1.0], [-2.0, 3.0]], [[3.0, -2.0], [0.0, 0.0]]]
 
-3. Pass an array of `Player` instances
-
-See the next section.
+The third is to pass an array of `Player` instances, as explained in the
+next section.
 
 Creating a Player
 -----------------
 
 A `Player` instance is created by passing a payoff array:
 
->>> coordination_game_matrix = [[4, 0], [3, 2]]
->>> player = Player(coordination_game_matrix)
->>> player.payoff_array
-array([[4, 0],
-       [3, 2]])
+>>> player0 = Player([[3, 1], [0, 2]])
+>>> player0
+Player in a 2-player normal form game with payoff matrix:
+[[3, 1], [0, 2]]
 
-You can also create a `NormalFormGame` instance by passing an array of
-`Player` instances:
+Passing an array of `Player` instances is the third way to create a
+`NormalFormGame` instance.
 
->>> player0 = Player([[3, 1],
-                      [0, 2]])
->>> player1 = Player([[2, 0],
-                      [1, 3]])
+>>> player1 = Player([[2, 0], [1, 3]])
 >>> g = NormalFormGame((player0, player1))
 >>> g
 2-player NormalFormGame with payoff bimatrix:
 [[[3, 2], [1, 1]], [[0, 0], [2, 3]]]
+
+Beware that in `payoff_array[h, k]`, `h` refers to the player's own
+action, while `k` refers to the opponent player's action.
 
 """
 from __future__ import division
@@ -144,7 +135,7 @@ class Player(object):
         Array representing the player's payoff function, where
         payoff_array[a_0, a_1, ..., a_{N-1}] is the payoff to the player
         when the player plays action a_0 while his N-1 opponents play
-        action a_1, ..., a_{N-1}, respectively.
+        actions a_1, ..., a_{N-1}, respectively.
 
     Attributes
     ----------
@@ -274,7 +265,8 @@ class Player(object):
             floats (mixed action).
 
         tie_breaking : {'smallest', 'random', False}
-            Controls how to break a tie (see Returns for details).
+            Control how, or whether, to break a tie (see Returns for
+            details).
 
         Returns
         -------
@@ -299,7 +291,8 @@ class Player(object):
             elif tie_breaking is False:
                 return best_responses
             else:
-                msg = "tie_breaking must be one of 'smallest', 'random' or False"
+                msg = "tie_breaking must be one of 'smallest', 'random' " + \
+                      "or False"
                 raise ValueError(msg)
 
     def random_choice(self, actions=None):
@@ -485,7 +478,7 @@ class NormalFormGame(object):
         Parameters
         ----------
         action_profile : array_like(int or array_like(float))
-            An array of N objects, where each object must be an integer 
+            An array of N objects, where each object must be an integer
             (pure action) or an array of floats (mixed action).
 
         Returns
