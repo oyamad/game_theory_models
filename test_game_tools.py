@@ -11,7 +11,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import eq_, ok_, raises
 
-from game_tools import Player, NormalFormGame
+from game_tools import Player, NormalFormGame, random_choice, pure2mixed
 
 
 # Player #
@@ -280,6 +280,23 @@ def test_normalformgame_invalid_input_nosquare_matrix():
 @raises(ValueError)
 def test_normalformgame_invalid_input_payoff_profiles():
     g = NormalFormGame(np.zeros((2, 2, 1)))
+
+
+# Utility functions #
+
+def test_random_choice():
+    eq_(random_choice([0]), 0)
+
+    actions = [0, 1, 2]
+    ok_(random_choice(actions) in actions)
+
+
+def test_pure2mixed():
+    num_actions = 3
+    pure_action = 0
+    mixed_action = [1., 0., 0.]
+
+    assert_array_equal(pure2mixed(num_actions, pure_action), mixed_action)
 
 
 if __name__ == '__main__':
