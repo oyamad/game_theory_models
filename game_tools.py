@@ -57,6 +57,11 @@ mixed actions :math:`x_{-i}`.
 Creating a NormalFormGame
 -------------------------
 
+There are three ways to construct a `NormalFormGame` instance.
+
+1. Passing an array of payoffs for all the players.
+
+Here's an example of "Matching Pennies":
 >>> matching_pennies_bimatrix = [[(1, -1), (-1, 1)], [(-1, 1), (1, -1)]]
 >>> g = NormalFormGame(matching_pennies_bimatrix)
 >>> g.players[0].payoff_array
@@ -66,12 +71,17 @@ array([[ 1, -1],
 array([[-1,  1],
        [ 1, -1]])
 
+2. Setting the payoffs after creating a `NormalFormGame` instance.
+
+First, create a `NormalFormGame` instance filled with payoff zeros:
 >>> g = NormalFormGame((2, 2))
 >>> g.players[0].payoff_array
 array([[ 0.,  0.],
        [ 0.,  0.]])
 >>> g[0, 0]
 [0.0, 0.0]
+
+After that, set the payoff values to each entry:
 >>> g[0, 0] = (0, 10)
 >>> g[0, 1] = (0, 10)
 >>> g[1, 0] = (3, 5)
@@ -83,14 +93,30 @@ array([[ 0.,  0.],
 array([[ 10.,   5.],
        [ 10.,   0.]])
 
+3. Passing an array of `Player` instances
+
+See "Creating a Player".
+
 Creating a Player
 -----------------
 
+A `Player` instance is created by passing a payoff array:
 >>> coordination_game_matrix = [[4, 0], [3, 2]]
 >>> player = Player(coordination_game_matrix)
 >>> player.payoff_array
 array([[4, 0],
        [3, 2]])
+
+You can create a `NormalFormGame` instance by passing an array of
+`Player` instances:
+>>> player0 = Player([[3, 1],
+                      [0, 2]])
+>>> player1 = Player([[2, 0],
+                      [1, 3]])
+>>> g_BoS = NormalFormGame((player0, player1))
+>>> g_BoS
+2-player NormalFormGame with payoff bimatrix:
+[[[3, 2], [1, 1]], [[0, 0], [2, 3]]]
 
 """
 from __future__ import division
