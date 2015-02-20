@@ -263,6 +263,11 @@ class Player(object):
             Control how, or whether, to break a tie (see Returns for
             details).
 
+        payoff_perturbations : array_like(float)
+            Array of length equal to the number of actions of the player
+            containing payoff perturbations, which are added to the
+            payoffs in determining the best response.
+
         Returns
         -------
         scalar(int) or ndarray(int, ndim=1)
@@ -274,6 +279,8 @@ class Player(object):
 
         """
         payoff_vector = self.payoff_vector(opponents_actions)
+        if payoff_perturbations:
+            payoff_vector += payoff_perturbations
 
         if tie_breaking == 'smallest':
             best_response = np.argmax(payoff_vector)

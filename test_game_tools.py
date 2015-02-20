@@ -39,11 +39,18 @@ class TestPlayer_1opponent:
 
     def test_best_response_with_random_tie_breaking(self):
         """best_response with tie_breaking='random'"""
-        ok_(self.player.best_response([2/3, 1/3], tie_breaking='random') in [0, 1])
+        ok_(self.player.best_response([2/3, 1/3], tie_breaking='random')
+            in [0, 1])
 
     def test_best_response_with_smallest_tie_breaking(self):
         """best_response with tie_breaking='smallest' (default)"""
         eq_(self.player.best_response([2/3, 1/3]), 0)
+
+    def test_best_response_with_payoff_perturbations(self):
+        """best_response with payoff_perturbations"""
+        eq_(self.player.best_response([2/3, 1/3],
+                                      payoff_perturbations=[0, 0.1]),
+            1)
 
     def test_is_best_response_against_pure(self):
         ok_(self.player.is_best_response(0, 0))
@@ -73,7 +80,9 @@ class TestPlayer_2opponents:
         eq_(self.player.best_response((1, 1)), 1)
 
     def test_best_response_list_when_tie(self):
-        """best_response against a mixed action profile with tie_breaking=False
+        """
+        best_response against a mixed action profile with
+        tie_breaking=False
         """
         assert_array_equal(
             sorted(self.player.best_response(([3/7, 4/7], [1/2, 1/2]),
