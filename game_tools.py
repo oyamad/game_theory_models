@@ -113,7 +113,7 @@ class Player(object):
     Attributes
     ----------
     payoff_array : ndarray(float, ndim=N)
-        Array representing the player's payoff function.
+        See Parameters.
 
     num_actions : scalar(int)
         The number of actions available to the player.
@@ -159,7 +159,7 @@ class Player(object):
 
         Parameters
         ----------
-        opponents_actions : see `best_response`
+        opponents_actions : see `best_response`.
 
         Returns
         -------
@@ -171,7 +171,7 @@ class Player(object):
         def reduce_last_player(payoff_array, action):
             """
             Given `payoff_array` with ndim=M, return the payoff array
-            with ndim=M-1 fixing the last player's action to be `action`
+            with ndim=M-1 fixing the last player's action to be `action`.
 
             """
             if isinstance(action, int):  # pure action
@@ -200,7 +200,7 @@ class Player(object):
         Parameters
         ----------
         own_action : scalar(int) or array_like(float, ndim=1)
-            An integer representing a pure action, or an array_like
+            An integer representing a pure action, or an array of floats
             representing a mixed action.
 
         opponents_actions : see `best_response`
@@ -238,6 +238,7 @@ class Player(object):
             floats (mixed action).
 
         tie_breaking : {'smallest', 'random', False}
+            Controls how to break a tie (see Returns for details).
 
         Returns
         -------
@@ -267,7 +268,7 @@ class Player(object):
 
     def random_choice(self, actions=None):
         """
-        Return a pure action chosen at random from `actions`.
+        Return a pure action chosen randomly from `actions`.
 
         Parameters
         ----------
@@ -301,7 +302,7 @@ class NormalFormGame(object):
         must be consistent. If `data` is an array of N integers, then
         these integers are treated as the numbers of actions of the N
         players and a NormalFormGame is created consisting of payoffs
-        all 0 with `data[i]` actions for each `i`-th player. `data` may
+        all 0 with `data[i]` actions for each player `i`. `data` may
         also be an (N+1)-dimensional array representing payoff profiles.
         If `data` is a square matrix (2-dimensional array), then the
         game will be a symmetric two-player game where the payoff matrix
