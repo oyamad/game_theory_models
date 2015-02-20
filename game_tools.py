@@ -148,10 +148,6 @@ class Player(object):
     num_opponents : scalar(int)
         The number of opponent players.
 
-    action_sizes : tuple(int)
-        Tuple of length N representing the numbers of actions of the
-        players.
-
     """
     def __init__(self, payoff_array):
         self.payoff_array = np.asarray(payoff_array)
@@ -160,8 +156,7 @@ class Player(object):
             raise ValueError('payoff_array must be an array_like')
 
         self.num_opponents = self.payoff_array.ndim - 1
-        self.action_sizes = self.payoff_array.shape
-        self.num_actions = self.action_sizes[0]
+        self.num_actions = self.payoff_array.shape[0]
 
         self.tol = 1e-8
 
@@ -354,14 +349,13 @@ class NormalFormGame(object):
         if hasattr(data, '__getitem__') and isinstance(data[0], Player):
             N = len(data)
 
-            # Check that action_sizes are consistent
-            action_sizes_0 = data[0].action_sizes
+            # Check that the shapes of the payoff arrays are consistent
+            shape_0 = data[0].payoff_array.shape
             for i in range(1, N):
-                action_sizes = data[i].action_sizes
+                shape = data[i].payoff_array.shape
                 if not (
-                    len(action_sizes) == N and
-                    action_sizes ==
-                    tuple(action_sizes_0[j] for j in np.arange(i, i+N) % N)
+                    len(shape) == N and
+                    shape == tuple(shape_0[j] for j in np.arange(i, i+N) % N)
                 ):
                     raise ValueError(
                         'shapes of payoff arrays must be consistent'
