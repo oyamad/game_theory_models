@@ -24,12 +24,29 @@ class BRD(object):
 
         # Current action distribution
         self.current_action_dist = np.zeros(self.num_actions, dtype=int)
-        self.current_action_dist[0] = self.N  # Initialization
+        self.set_init_action_dist()  # Initialization
 
     def set_init_action_dist(self, init_action_dist=None):
-        if init_action_dist is None:
-            actions = np.random.randint(self.num_actions, size=self.N)
-            init_action_dist = np.bincount(actions, minlength=self.num_actions)
+        """
+        Set the attribute `current_action_dist` to `init_action_dist`.
+
+        Parameters
+        ----------
+        init_action_dist : array_like(float, ndim=1),
+                           optional(default=None)
+            Array containing the initial action distribution. If not
+            supplied, randomly chosen uniformly over the set of possible
+            action distributions.
+
+        """
+        if init_action_dist is None:  # Randomly choose an action distribution
+            cutoffs = np.empty(self.num_actions, dtype=int)
+            cutoffs[-1] = self.N + self.num_actions - 1
+            cutoffs[:-1] = np.random.choice(self.N+self.num_actions-1,
+                                            self.num_actions-1, replace=False)
+            cutoffs[:-1].sort()
+            cutoffs[1:] -= cutoffs[:-1] + 1
+            init_action_dist = cutoffs
         self.current_action_dist = init_action_dist
 
     def play(self, current_action):
