@@ -29,7 +29,7 @@ class FictitiousPlay(object):
 
     nums_actions : tuple(int)
 
-    current_beliefs : tuple(ndarray)
+    current_beliefs : tuple(ndarray(float, ndim=1))
 
     """
     def __init__(self, data):
@@ -39,16 +39,13 @@ class FictitiousPlay(object):
             payoffs = np.asarray(data)
             if not (payoffs.ndim in [2, 3]):
                 raise ValueError(
-                    'data must be a symmetric matrix or a bimatrix'
+                    'data must be a square matrix or a bimatrix'
                 )
             self.g = NormalFormGame(payoffs)
 
         self.N = self.g.N  # Must be 2
         self.players = self.g.players
-        # self.nums_actions = self.g.nums_actions
-        self.nums_actions = tuple(
-            player.num_actions for player in self.players
-        )
+        self.nums_actions = self.g.nums_actions
 
         # Create attribute `current_belief` for self.players
         for player in self.players:
