@@ -47,7 +47,7 @@ class BRD(object):
             cutoffs[:-1].sort()
             cutoffs[1:] -= cutoffs[:-1] + 1
             init_action_dist = cutoffs
-        self.current_action_dist = init_action_dist
+        self.current_action_dist[:] = init_action_dist
 
     def play(self, current_action):
         next_action_dists = \
@@ -57,7 +57,7 @@ class BRD(object):
 
         if len(next_action_dists) > 1:
             np.random.shuffle(next_action_dists)
-        self.current_action_dist = next_action_dists[0]
+        self.current_action_dist[:] = next_action_dists[0]
 
     def best_response_transition(self, current_action_dist, action=None):
         if action is None:
@@ -128,4 +128,4 @@ class KMR(BRD):
 
             if len(next_action_dists) > 1:
                 np.random.shuffle(next_action_dists)
-            self.current_action_dist = next_action_dists[0]
+            self.current_action_dist[:] = next_action_dists[0]
