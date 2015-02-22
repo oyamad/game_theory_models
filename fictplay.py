@@ -48,8 +48,8 @@ class FictitiousPlay(object):
         self.nums_actions = self.g.nums_actions
 
         # Create attribute `current_belief` for self.players
-        for player in self.players:
-            player.current_belief = None
+        for i, player in enumerate(self.players):
+            player.current_belief = np.empty(self.nums_actions[1-i])
         self.set_init_beliefs()  # Initialize `current_belief`
 
         self.current_actions = np.zeros(self.N, dtype=int)
@@ -80,7 +80,7 @@ class FictitiousPlay(object):
             ]
 
         for i, player in enumerate(self.players):
-            player.current_belief = np.asarray(init_beliefs[i], dtype=float)
+            player.current_belief[:] = init_beliefs[i]
 
     def play(self):
         for i, player in enumerate(self.players):
