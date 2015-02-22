@@ -90,11 +90,14 @@ class BRD(object):
     def simulate_iter(self, ts_length, init_action_dist=None):
         self.set_init_action_dist(init_action_dist=init_action_dist)
 
+        # Sequence of randomly chosen players to revise
+        player_ind_sequence = np.random.randint(self.N, size=ts_length)
+
         for t in range(ts_length):
             yield self.current_action_dist
-            player_ind = np.random.randint(self.N)  # Player to revise
             action = np.searchsorted(
-                self.current_action_dist.cumsum(), player_ind, side='right'
+                self.current_action_dist.cumsum(), player_ind_sequence[t],
+                side='right'
             )  # Action the revising player is playing
             self.play(current_action=action)
 
