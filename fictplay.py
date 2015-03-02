@@ -56,6 +56,8 @@ class FictitiousPlay(object):
 
         self.current_actions = np.zeros(self.N, dtype=int)
 
+        self.step_size = lambda t: 1 / (t+2)
+
     def __repr__(self):
         msg = "Fictitious play for "
         g_repr = self.g.__repr__()
@@ -120,7 +122,7 @@ class FictitiousPlay(object):
         for t in range(ts_length):
             yield self.current_beliefs
             self.play()
-            self.update_beliefs(1/(t+2))
+            self.update_beliefs(self.step_size(t))
 
     def replicate(self, T, init_beliefs=None):
         pass
