@@ -243,7 +243,7 @@ class Player(object):
             return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
 
     def best_response(self, opponents_actions, tie_breaking='smallest',
-                      payoff_perturbations=None):
+                      payoff_perturbation=None):
         """
         Return the best response action(s) to `opponents_actions`.
 
@@ -263,10 +263,10 @@ class Player(object):
             Control how, or whether, to break a tie (see Returns for
             details).
 
-        payoff_perturbations : array_like(float)
+        payoff_perturbation : array_like(float)
             Array of length equal to the number of actions of the player
-            containing payoff perturbations, which are added to the
-            payoffs in determining the best response.
+            containing the values ("noises") to be added to the payoffs
+            in determining the best response.
 
         Returns
         -------
