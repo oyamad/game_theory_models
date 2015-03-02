@@ -279,8 +279,8 @@ class Player(object):
 
         """
         payoff_vector = self.payoff_vector(opponents_actions)
-        if payoff_perturbations:
-            payoff_vector += payoff_perturbations
+        if payoff_perturbation is not None:
+            payoff_vector += payoff_perturbation
 
         if tie_breaking == 'smallest':
             best_response = np.argmax(payoff_vector)
