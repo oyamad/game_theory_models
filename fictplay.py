@@ -47,11 +47,13 @@ class FictitiousPlay(object):
 
         self.N = self.g.N  # Must be 2
         self.players = self.g.players
-        self.nums_actions = self.g.nums_actions
+        self.belief_sizes = tuple(
+            self.g.nums_actions[1-i] for i in range(self.N)
+        )
 
         # Create instance variable `current_belief` for self.players
-        for i, player in enumerate(self.players):
-            player.current_belief = np.empty(self.nums_actions[1-i])
+        for player, belief_size in zip(self.players, self.belief_sizes):
+            player.current_belief = np.empty(belief_size)
         self.set_init_beliefs()  # Initialize `current_belief`
 
         self.current_actions = np.zeros(self.N, dtype=int)
@@ -82,8 +84,8 @@ class FictitiousPlay(object):
         """
         if init_beliefs is None:
             init_beliefs = [
-                np.random.dirichlet(np.ones(num_actions))
-                for num_actions in self.nums_actions
+                np.random.dirichlet(np.ones(belief_size))
+                for belief_size in self.belief_sizes
             ]
 
         for i, player in enumerate(self.players):
@@ -105,8 +107,8 @@ class FictitiousPlay(object):
 
     def simulate(self, ts_length, init_beliefs=None):
         belief_sequences = tuple(
-            np.empty((ts_length, num_action))
-            for num_action in self.nums_actions
+            np.empty((ts_length, belief_size))
+            for belief_size in self.belief_sizes
         )
         beliefs_iter = self.simulate_iter(ts_length, init_beliefs)
 
@@ -124,5 +126,23 @@ class FictitiousPlay(object):
             self.play()
             self.update_beliefs(self.step_size(t))
 
-    def replicate(self, T, init_beliefs=None):
-        pass
+    def replicate(self, T, num_reps, init_beliefs=None):
+        """
+        Returns
+        -------
+        out : tuple(ndarray(float, ndim=2))
+
+        """
+        out = tuple(
+            np.empty((num_reps, belief_size))
+            for belief_size in self.belief_sizes
+        )
+
+        for j in range(num_reps):
+            beliefs_iter = self.simulate_iter(T+1, init_beliefs)
+            for beliefs in beliefs_iter:
+                x = beliefs
+            for belief_array, belief in zip(out, x):
+                belief_array[j] = belief
+
+        return out
