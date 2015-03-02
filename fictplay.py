@@ -60,6 +60,8 @@ class FictitiousPlay(object):
 
         self.step_size = lambda t: 1 / (t+2)
 
+        self.tie_breaking = 'smallest'
+
     def __repr__(self):
         msg = "Fictitious play for "
         g_repr = self.g.__repr__()
@@ -94,7 +96,8 @@ class FictitiousPlay(object):
     def play(self):
         for i, player in enumerate(self.players):
             self.current_actions[i] = \
-                player.best_response(player.current_belief)
+                player.best_response(player.current_belief,
+                                     tie_breaking=self.tie_breaking)
 
     def update_beliefs(self, step_size):
         for i, player in enumerate(self.players):
@@ -198,6 +201,7 @@ class StochasticFictitiousPlay(FictitiousPlay):
         for i, player in enumerate(self.players):
             self.current_actions[i] = player.best_response(
                 player.current_belief,
+                tie_breaking=self.tie_breaking,
                 payoff_perturbation=payoff_perturbations[i]
             )
 
