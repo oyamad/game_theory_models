@@ -9,7 +9,7 @@ Fictitious play model.
 from __future__ import division
 
 import numpy as np
-from game_tools import NormalFormGame, pure2mixed
+from game_tools import NormalFormGame
 
 
 class FictitiousPlay(object):
@@ -146,3 +146,75 @@ class FictitiousPlay(object):
                 belief_array[j] = belief
 
         return out
+
+
+class StochasticFictitiousPlay(FictitiousPlay):
+    """
+    Stochastic fictitious play with two players.
+
+    """
+    def __init__(self, data, distribution='extreme', sigma=1.0, epsilon=None):
+        FictitiousPlay.__init__(self, data)
+        self.n_0, self.n_1 = self.g.nums_actions
+        self.n = self.n_0 + self.n_1
+
+        if distribution == 'extreme':  # extreme-value, or gumbel, distribution
+            loc = -np.euler_gamma * np.sqrt(6) / np.pi
+            scale = np.sqrt(6) / np.pi
+            self.payoff_perturbation_dist = \
+                lambda size: np.random.gumbel(loc=loc, scale=scale, size=size)
+        elif distribution == 'normal':  # normal distribution
+            self.payoff_perturbation_dist = np.random.standard_normal
+        else:
+            raise ValueError("distribution must be 'extreme' or 'normal'")
+
+        self.sigma = sigma
+
+        if epsilon is not None:
+            self.step_size = lambda t: epsilon
+
+    def set_sigma(self, sigma):
+        self.sigma = sigma
+
+    def set_epsilon(self, epsilon):
+        self.step_size = lambda t: epsilon
+
+    def play(self, payoff_perturbations=None):
+        """
+        Parameters
+        ----------
+        payoff_perturbations : array_like(array_like(float))
+            Array containing the two players' payoff perturbation
+            vectors.
+
+        """
+        if payoff_perturbations is None:
+            payoff_perturbations_draw = \
+                self.payoff_perturbation_dist(size=self.n)
+            payoff_perturbations = (
+                payoff_perturbations_draw[:self.n_0],
+                payoff_perturbations_draw[self.n_0:]
+            )
+        for i, player in enumerate(self.players):
+            self.current_actions[i] = player.best_response(
+                player.current_belief,
+                payoff_perturbation=payoff_perturbations[i]
+            )
+
+    def simulate_iter(self, ts_length, init_beliefs=None):
+        self.set_init_beliefs(init_beliefs)
+
+        payoff_perturbations_draws = \
+            self.payoff_perturbation_dist(
+                size=ts_length*self.n
+            ).reshape(ts_length, self.n) * self.sigma
+
+        for t in range(ts_length):
+            yield self.current_beliefs
+            self.play(
+                payoff_perturbations=(
+                    payoff_perturbations_draws[t, :self.n_0],
+                    payoff_perturbations_draws[t, self.n_0:]
+                )
+            )
+            self.update_beliefs(1/(t+2))
