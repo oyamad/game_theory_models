@@ -34,12 +34,14 @@ class FictitiousPlay(object):
     """
     def __init__(self, data):
         if isinstance(data, NormalFormGame):
+            if data.N != 2:
+                raise ValueError('input game must be a two-player game')
             self.g = data
         else:  # data must be array_like
             payoffs = np.asarray(data)
             if not (payoffs.ndim in [2, 3]):
                 raise ValueError(
-                    'data must be a square matrix or a bimatrix'
+                    'input data must be a square matrix or a bimatrix'
                 )
             self.g = NormalFormGame(payoffs)
 
@@ -47,7 +49,7 @@ class FictitiousPlay(object):
         self.players = self.g.players
         self.nums_actions = self.g.nums_actions
 
-        # Create attribute `current_belief` for self.players
+        # Create instance variable `current_belief` for self.players
         for i, player in enumerate(self.players):
             player.current_belief = np.empty(self.nums_actions[1-i])
         self.set_init_beliefs()  # Initialize `current_belief`
@@ -55,7 +57,10 @@ class FictitiousPlay(object):
         self.current_actions = np.zeros(self.N, dtype=int)
 
     def __repr__(self):
-        return "Fictitious play"
+        msg = "Fictitious play for "
+        g_repr = self.g.__repr__()
+        msg += g_repr
+        return msg
 
     def __str__(self):
         return self.__repr__()
