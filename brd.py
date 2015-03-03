@@ -110,7 +110,7 @@ class KMR(BRD):
         if np.random.random() < self.epsilon:  # Mutation
             next_action = self.player.random_choice()
         else:  # Best response
-            opponents_dist = current_action_dist
+            opponents_dist = self.current_action_dist
             next_action = \
                 self.player.best_response(opponents_dist,
                                           tie_breaking=self.tie_breaking)
