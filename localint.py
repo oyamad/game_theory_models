@@ -99,7 +99,8 @@ class LocalInteraction(object):
             player_ind = [player_ind]
 
         opponent_act_dists = \
-            self.adj_matrix[player_ind].dot(self.current_actions_mixed).toarray()
+            self.adj_matrix[player_ind].dot(
+                self.current_actions_mixed).toarray()
 
         best_responses = np.empty(len(player_ind), dtype=int)
         for k, i in enumerate(player_ind):
@@ -115,7 +116,7 @@ class LocalInteraction(object):
         """
         self.set_init_actions(init_actions=init_actions)
 
-        actions_sequence = np.empty([ts_length, self.N], dtype=int)
+        actions_sequence = np.empty((ts_length, self.N), dtype=int)
         actions_sequence_iter = \
             self.simulate_iter(ts_length, init_actions=init_actions,
                                revision=revision)
@@ -133,10 +134,12 @@ class LocalInteraction(object):
         """
         self.set_init_actions(init_actions=init_actions)
 
-        if revision == 'sequential':
+        if revision == 'simultaneous':
+            player_ind_sequence = [None] * ts_length
+        elif revision == 'sequential':
             player_ind_sequence = np.random.randint(self.N, size=ts_length)
         else:
-            player_ind_sequence = [None] * ts_length
+            raise ValueError("revision must be 'simultaneous' or 'sequential'")
 
         for t in range(ts_length):
             yield self.current_actions
