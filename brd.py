@@ -21,6 +21,7 @@ class BRD(object):
         self.N = N  # Number of players
 
         self.player = Player(A)  # "Representative player"
+        self.tie_breaking = 'smallest'
 
         # Current action distribution
         self.current_action_dist = np.zeros(self.num_actions, dtype=int)
@@ -50,31 +51,11 @@ class BRD(object):
         self.current_action_dist[:] = init_action_dist
 
     def play(self, current_action):
-        next_action_dists = \
-            self.best_response_transition(
-                self.current_action_dist, current_action
-            )[current_action]
-
-        if len(next_action_dists) > 1:
-            np.random.shuffle(next_action_dists)
-        self.current_action_dist[:] = next_action_dists[0]
-
-    def best_response_transition(self, current_action_dist, action=None):
-        if action is None:
-            actions = np.nonzero(current_action_dist)[0]
-        else:
-            actions = [action]
-        out = dict()
-        for action in actions:
-            current_action_dist[action] -= 1
-            brs = self.player.best_response(current_action_dist,
-                                            tie_breaking=False)
-            num_brs = len(brs)
-            out[action] = np.empty((num_brs, self.num_actions), dtype=int)
-            out[action][:] = current_action_dist
-            out[action][np.arange(num_brs), brs] += 1
-            current_action_dist[action] += 1
-        return out
+        self.current_action_dist[current_action] -= 1
+        opponents_dist = self.current_action_dist
+        next_action = self.player.best_response(opponents_dist,
+                                                tie_breaking=self.tie_breaking)
+        self.current_action_dist[next_action] += 1
 
     def simulate(self, ts_length, init_action_dist=None):
         action_dist_sequence = \
@@ -106,38 +87,36 @@ class BRD(object):
 
 
 class KMR(BRD):
-    def __init__(self, payoff_matrix, N):
+    def __init__(self, payoff_matrix, N, epsilon=0.1):
         BRD.__init__(self, payoff_matrix, N)
 
         # Mutation probability
-        self.epsilon = 0.
+        self.epsilon = epsilon
 
     def set_epsilon(self, epsilon):
         self.epsilon = epsilon
 
     def play(self, current_action):
+        self.current_action_dist[current_action] -= 1
         if np.random.random() < self.epsilon:  # Mutation
             next_action = self.player.random_choice()
-            self.current_action_dist[current_action] -= 1
-            self.current_action_dist[next_action] += 1
         else:  # Best response
-            next_action_dists = \
-                self.best_response_transition(
-                    self.current_action_dist, current_action
-                )[current_action]
-
-            if len(next_action_dists) > 1:
-                np.random.shuffle(next_action_dists)
-            self.current_action_dist[:] = next_action_dists[0]
+            opponents_dist = current_action_dist
+            next_action = \
+                self.player.best_response(opponents_dist,
+                                          tie_breaking=self.tie_breaking)
+        self.current_action_dist[next_action] += 1
 
 
 class SamplingBRD(BRD):
     def __init__(self, payoff_matrix, N, k=2):
         BRD.__init__(self, payoff_matrix, N)
 
-        self.k = k  # Sample size
+        # Sample size
+        self.k = k
 
-        self.tie_breaking = 'smallest'
+    def set_k(self, k):
+        self.k = k
 
     def play(self, current_action):
         self.current_action_dist[current_action] -= 1
@@ -145,6 +124,6 @@ class SamplingBRD(BRD):
         actions = np.random.choice(self.num_actions, size=self.k, replace=True,
                                    p=opponents_dist/(self.N-1))
         sample_action_dist = np.bincount(actions, minlength=self.num_actions)
-        br = self.player.best_response(sample_action_dist,
-                                       tie_breaking=self.tie_breaking)
-        self.current_action_dist[br] += 1
+        next_action = self.player.best_response(sample_action_dist,
+                                                tie_breaking=self.tie_breaking)
+        self.current_action_dist[next_action] += 1
