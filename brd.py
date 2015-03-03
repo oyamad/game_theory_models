@@ -129,3 +129,22 @@ class KMR(BRD):
             if len(next_action_dists) > 1:
                 np.random.shuffle(next_action_dists)
             self.current_action_dist[:] = next_action_dists[0]
+
+
+class SamplingBRD(BRD):
+    def __init__(self, payoff_matrix, N, k=2):
+        BRD.__init__(self, payoff_matrix, N)
+
+        self.k = k  # Sample size
+
+        self.tie_breaking = 'smallest'
+
+    def play(self, current_action):
+        self.current_action_dist[current_action] -= 1
+        opponents_dist = self.current_action_dist
+        actions = np.random.choice(self.num_actions, size=self.k, replace=True,
+                                   p=opponents_dist/(self.N-1))
+        sample_action_dist = np.bincount(actions, minlength=self.num_actions)
+        br = self.player.best_response(sample_action_dist,
+                                       tie_breaking=self.tie_breaking)
+        self.current_action_dist[br] += 1
