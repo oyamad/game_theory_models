@@ -68,13 +68,17 @@ class LocalInteraction(object):
             (np.ones(self.N, dtype=int), init_actions, np.arange(self.N+1)),
             shape=(self.N, self.num_actions)
         )
-        self.current_actions = self.current_actions_mixed.indices.view()
+        self._current_actions = self.current_actions_mixed.indices.view()
+
+    @property
+    def current_actions(self):
+        return self._current_actions
 
     def set_init_actions(self, init_actions=None):
         if init_actions is None:
             init_actions = np.random.randint(self.num_actions, size=self.N)
 
-        self.current_actions[:] = init_actions
+        self._current_actions[:] = init_actions
 
     def play(self, player_ind=None):
         """
@@ -102,7 +106,7 @@ class LocalInteraction(object):
             best_responses[k] = \
                 self.players[i].best_response(opponent_act_dists[k, :])
 
-        self.current_actions[player_ind] = best_responses
+        self._current_actions[player_ind] = best_responses
 
     def simulate(self, ts_length, init_actions=None, revision='simultaneous'):
         """
