@@ -82,8 +82,17 @@ class BRD(object):
             )  # Action the revising player is playing
             self.play(current_action=action)
 
-    def replicate(self, T, init_action_dist=None):
-        pass
+    def replicate(self, T, num_reps, init_action_dist=None):
+        out = np.empty((num_reps, self.num_actions), dtype=int)
+
+        for j in range(num_reps):
+            action_dist_sequence_iter = \
+                self.simulate_iter(T+1, init_action_dist=init_action_dist)
+            for action_dist in action_dist_sequence_iter:
+                x = action_dist
+            out[j] = x
+
+        return out
 
 
 class KMR(BRD):
