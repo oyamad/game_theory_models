@@ -62,6 +62,7 @@ class LocalInteraction(object):
         self.num_actions = A.shape[0]  # Number of actions
 
         self.players = [Player(A) for i in range(self.N)]
+        self.tie_breaking = 'smallest'
 
         init_actions = np.zeros(self.N, dtype=int)
         self.current_actions_mixed = sparse.csr_matrix(
@@ -105,7 +106,8 @@ class LocalInteraction(object):
         best_responses = np.empty(len(player_ind), dtype=int)
         for k, i in enumerate(player_ind):
             best_responses[k] = \
-                self.players[i].best_response(opponent_act_dists[k, :])
+                self.players[i].best_response(opponent_act_dists[k, :],
+                                              tie_breaking=self.tie_breaking)
 
         self._current_actions[player_ind] = best_responses
 
