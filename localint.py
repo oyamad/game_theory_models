@@ -146,3 +146,17 @@ class LocalInteraction(object):
         for t in range(ts_length):
             yield self.current_actions
             self.play(player_ind=player_ind_sequence[t])
+
+    def replicate(self, T, num_reps, init_actions=None,
+                  revision='simultaneous'):
+        out = np.empty((num_reps, self.N), dtype=int)
+
+        for j in range(num_reps):
+            actions_sequence_iter = \
+                self.simulate_iter(T+1, init_actions=init_actions,
+                                   revision=revision)
+            for actions in actions_sequence_iter:
+                x = actions
+            out[j] = x
+
+        return out
