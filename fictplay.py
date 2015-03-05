@@ -54,7 +54,6 @@ class FictitiousPlay(object):
         # Create instance variable `current_belief` for self.players
         for player, belief_size in zip(self.players, self.belief_sizes):
             player.current_belief = np.empty(belief_size)
-        #self.set_init_beliefs()  # Initialize `current_belief`
 
         self.current_actions = np.zeros(self.N, dtype=int)
         self.set_init_actions()
@@ -86,24 +85,6 @@ class FictitiousPlay(object):
     def current_beliefs(self):
         return tuple(player.current_belief for player in self.players)
 
-    def set_init_beliefs(self, init_beliefs=None):
-        """
-        Set the initial beliefs of the players.
-
-        Parameters
-        ----------
-        init_beliefs : array_like
-
-        """
-        if init_beliefs is None:
-            init_beliefs = [
-                np.random.dirichlet(np.ones(belief_size))
-                for belief_size in self.belief_sizes
-            ]
-
-        for i, player in enumerate(self.players):
-            player.current_belief[:] = init_beliefs[i]
-
     def play(self):
         for i, player in enumerate(self.players):
             self.current_actions[i] = \
@@ -120,26 +101,23 @@ class FictitiousPlay(object):
             player.current_belief[self.current_actions[1-i]] += step_size
 
     def simulate(self, ts_length, init_actions=None):
-        belief_sequences = tuple(
-            np.empty((ts_length, belief_size))
-            for belief_size in self.belief_sizes
-        )
+        beliefs_array = np.empty((ts_length, sum(self.g.nums_actions)))
         beliefs_iter = self.simulate_iter(ts_length, init_actions)
 
         for t, beliefs in enumerate(beliefs_iter):
-            for i, belief in enumerate(beliefs):
-                belief_sequences[i][t] = belief
+            (beliefs_array[t, :self.belief_sizes[0]],
+             beliefs_array[t, self.belief_sizes[0]:]) = beliefs
 
-        return belief_sequences
+        return (beliefs_array[:, :self.belief_sizes[0]],
+                beliefs_array[:, self.belief_sizes[0]:])
 
     def simulate_iter(self, ts_length, init_actions=None):
-        #self.set_init_beliefs(init_beliefs)
         self.set_init_actions(init_actions)
 
         for t in range(ts_length):
             yield self.current_beliefs
             self.play()
-            self.update_beliefs(self.step_size(t))
+            self.update_beliefs(self.step_size(t+1))
 
     def replicate(self, T, num_reps, init_actions=None):
         """
@@ -148,19 +126,15 @@ class FictitiousPlay(object):
         out : tuple(ndarray(float, ndim=2))
 
         """
-        out = tuple(
-            np.empty((num_reps, belief_size))
-            for belief_size in self.belief_sizes
-        )
+        out = np.empty((num_reps, sum(self.g.nums_actions)))
 
         for j in range(num_reps):
             beliefs_iter = self.simulate_iter(T+1, init_actions)
             for beliefs in beliefs_iter:
                 x = beliefs
-            for belief_array, belief in zip(out, x):
-                belief_array[j] = belief
+            out[j, :self.belief_sizes[0]], out[j, self.belief_sizes[0]:] = x
 
-        return out
+        return out[:, :self.belief_sizes[0]], out[:, self.belief_sizes[0]:]
 
 
 class StochasticFictitiousPlay(FictitiousPlay):
