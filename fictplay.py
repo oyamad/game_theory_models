@@ -9,7 +9,7 @@ Fictitious play model.
 from __future__ import division
 
 import numpy as np
-from game_tools import NormalFormGame
+from game_tools import NormalFormGame, pure2mixed
 
 
 class FictitiousPlay(object):
@@ -54,11 +54,12 @@ class FictitiousPlay(object):
         # Create instance variable `current_belief` for self.players
         for player, belief_size in zip(self.players, self.belief_sizes):
             player.current_belief = np.empty(belief_size)
-        self.set_init_beliefs()  # Initialize `current_belief`
+        #self.set_init_beliefs()  # Initialize `current_belief`
 
         self.current_actions = np.zeros(self.N, dtype=int)
+        self.set_init_actions()
 
-        self.step_size = lambda t: 1 / (t+2)
+        self.step_size = lambda t: 1 / (t+1)
 
         self.tie_breaking = 'smallest'
 
@@ -70,6 +71,16 @@ class FictitiousPlay(object):
 
     def __str__(self):
         return self.__repr__()
+
+    def set_init_actions(self, init_actions=None):
+        if init_actions is None:
+            init_actions = np.zeros(self.N, dtype=int)
+            for i, n in enumerate(self.g.nums_actions):
+                init_actions[i] = np.random.randint(n)
+        self.current_actions[:] = init_actions
+        for i, player in enumerate(self.players):
+            player.current_belief[:] = \
+                pure2mixed(self.belief_sizes[i], init_actions[1-i])
 
     @property
     def current_beliefs(self):
@@ -108,12 +119,12 @@ class FictitiousPlay(object):
             player.current_belief *= 1 - step_size
             player.current_belief[self.current_actions[1-i]] += step_size
 
-    def simulate(self, ts_length, init_beliefs=None):
+    def simulate(self, ts_length, init_actions=None):
         belief_sequences = tuple(
             np.empty((ts_length, belief_size))
             for belief_size in self.belief_sizes
         )
-        beliefs_iter = self.simulate_iter(ts_length, init_beliefs)
+        beliefs_iter = self.simulate_iter(ts_length, init_actions)
 
         for t, beliefs in enumerate(beliefs_iter):
             for i, belief in enumerate(beliefs):
@@ -121,15 +132,16 @@ class FictitiousPlay(object):
 
         return belief_sequences
 
-    def simulate_iter(self, ts_length, init_beliefs=None):
-        self.set_init_beliefs(init_beliefs)
+    def simulate_iter(self, ts_length, init_actions=None):
+        #self.set_init_beliefs(init_beliefs)
+        self.set_init_actions(init_actions)
 
         for t in range(ts_length):
             yield self.current_beliefs
             self.play()
             self.update_beliefs(self.step_size(t))
 
-    def replicate(self, T, num_reps, init_beliefs=None):
+    def replicate(self, T, num_reps, init_actions=None):
         """
         Returns
         -------
@@ -142,7 +154,7 @@ class FictitiousPlay(object):
         )
 
         for j in range(num_reps):
-            beliefs_iter = self.simulate_iter(T+1, init_beliefs)
+            beliefs_iter = self.simulate_iter(T+1, init_actions)
             for beliefs in beliefs_iter:
                 x = beliefs
             for belief_array, belief in zip(out, x):
