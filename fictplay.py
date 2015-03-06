@@ -168,43 +168,18 @@ class StochasticFictitiousPlay(FictitiousPlay):
     def set_epsilon(self, epsilon):
         self.step_size = lambda t: epsilon
 
-    def play(self, payoff_perturbations=None):
+    def play(self):
         """
-        Parameters
-        ----------
-        payoff_perturbations : array_like(array_like(float))
-            Array containing the two players' payoff perturbation
-            vectors.
 
         """
-        if payoff_perturbations is None:
-            payoff_perturbations_draw = \
-                self.payoff_perturbation_dist(size=self.n)
-            payoff_perturbations = (
-                payoff_perturbations_draw[:self.n_0],
-                payoff_perturbations_draw[self.n_0:]
-            )
+        n_0, n_1 = self.g.nums_actions
+        n = n_0 + n_1
+        random_values = self.payoff_perturbation_dist(size=n)
+        payoff_perturbations = (random_values[:n_0], random_values[n_0:])
+
         for i, player in enumerate(self.players):
             self.current_actions[i] = player.best_response(
                 player.current_belief,
                 tie_breaking=self.tie_breaking,
                 payoff_perturbation=payoff_perturbations[i]
             )
-
-    def simulate_iter(self, ts_length, init_beliefs=None):
-        self.set_init_beliefs(init_beliefs)
-
-        payoff_perturbations_draws = \
-            self.payoff_perturbation_dist(
-                size=ts_length*self.n
-            ).reshape(ts_length, self.n) * self.sigma
-
-        for t in range(ts_length):
-            yield self.current_beliefs
-            self.play(
-                payoff_perturbations=(
-                    payoff_perturbations_draws[t, :self.n_0],
-                    payoff_perturbations_draws[t, self.n_0:]
-                )
-            )
-            self.update_beliefs(1/(t+2))
