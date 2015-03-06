@@ -56,9 +56,9 @@ class FictitiousPlay(object):
             player.current_belief = np.empty(belief_size)
 
         self.current_actions = np.zeros(self.N, dtype=int)
-        self.set_init_actions()
 
-        self.step_size = lambda t: 1 / (t+1)
+        self._decreasing_gain = lambda t: 1 / (t+1)
+        self.step_size = self._decreasing_gain
 
         self.tie_breaking = 'smallest'
 
@@ -144,8 +144,6 @@ class StochasticFictitiousPlay(FictitiousPlay):
     """
     def __init__(self, data, distribution='extreme', sigma=1.0, epsilon=None):
         FictitiousPlay.__init__(self, data)
-        self.n_0, self.n_1 = self.g.nums_actions
-        self.n = self.n_0 + self.n_1
 
         if distribution == 'extreme':  # extreme-value, or gumbel, distribution
             loc = -np.euler_gamma * np.sqrt(6) / np.pi
@@ -159,14 +157,25 @@ class StochasticFictitiousPlay(FictitiousPlay):
 
         self.sigma = sigma
 
-        if epsilon is not None:
-            self.step_size = lambda t: epsilon
+        # Set step size:
+        # If epsilon is None, step_size = _decreasing_gain,
+        # otherwise, step_size = epsilon
+        self.epsilon = epsilon
 
-    def set_sigma(self, sigma):
-        self.sigma = sigma
+    @property
+    def epsilon(self):
+        return self._epsilon
 
-    def set_epsilon(self, epsilon):
-        self.step_size = lambda t: epsilon
+    @epsilon.setter
+    def epsilon(self, value):
+        self._epsilon = value
+        self._set_step_size()
+
+    def _set_step_size(self):
+        if self._epsilon is None:
+            self.step_size = self._decreasing_gain
+        else:
+            self.step_size = lambda t: self._epsilon
 
     def play(self):
         """
