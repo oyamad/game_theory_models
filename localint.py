@@ -116,8 +116,6 @@ class LocalInteraction(object):
         Return array of ts_length arrays of N actions
 
         """
-        self.set_init_actions(init_actions=init_actions)
-
         actions_sequence = np.empty((ts_length, self.N), dtype=int)
         actions_sequence_iter = \
             self.simulate_iter(ts_length, init_actions=init_actions,
