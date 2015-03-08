@@ -46,10 +46,10 @@ class TestPlayer_1opponent:
         """best_response with tie_breaking='smallest' (default)"""
         eq_(self.player.best_response([2/3, 1/3]), 0)
 
-    def test_best_response_with_payoff_perturbations(self):
-        """best_response with payoff_perturbations"""
+    def test_best_response_with_payoff_perturbation(self):
+        """best_response with payoff_perturbation"""
         eq_(self.player.best_response([2/3, 1/3],
-                                      payoff_perturbations=[0, 0.1]),
+                                      payoff_perturbation=[0, 0.1]),
             1)
 
     def test_is_best_response_against_pure(self):
