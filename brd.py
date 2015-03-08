@@ -25,7 +25,7 @@ class BRD(object):
 
         # Current action distribution
         self.current_action_dist = np.zeros(self.num_actions, dtype=int)
-        self.set_init_action_dist()  # Initialization
+        self.current_action_dist[0] = self.N  # Initialization
 
     def set_init_action_dist(self, init_action_dist=None):
         """
@@ -52,8 +52,8 @@ class BRD(object):
 
     def play(self, current_action):
         self.current_action_dist[current_action] -= 1
-        opponents_dist = self.current_action_dist
-        next_action = self.player.best_response(opponents_dist,
+        opponent_action_dist = self.current_action_dist
+        next_action = self.player.best_response(opponent_action_dist,
                                                 tie_breaking=self.tie_breaking)
         self.current_action_dist[next_action] += 1
 
@@ -102,17 +102,14 @@ class KMR(BRD):
         # Mutation probability
         self.epsilon = epsilon
 
-    def set_epsilon(self, epsilon):
-        self.epsilon = epsilon
-
     def play(self, current_action):
         self.current_action_dist[current_action] -= 1
         if np.random.random() < self.epsilon:  # Mutation
             next_action = self.player.random_choice()
         else:  # Best response
-            opponents_dist = self.current_action_dist
+            opponent_action_dist = self.current_action_dist
             next_action = \
-                self.player.best_response(opponents_dist,
+                self.player.best_response(opponent_action_dist,
                                           tie_breaking=self.tie_breaking)
         self.current_action_dist[next_action] += 1
 
@@ -124,14 +121,11 @@ class SamplingBRD(BRD):
         # Sample size
         self.k = k
 
-    def set_k(self, k):
-        self.k = k
-
     def play(self, current_action):
         self.current_action_dist[current_action] -= 1
-        opponents_dist = self.current_action_dist
+        opponent_action_dist = self.current_action_dist
         actions = np.random.choice(self.num_actions, size=self.k, replace=True,
-                                   p=opponents_dist/(self.N-1))
+                                   p=opponent_action_dist/(self.N-1))
         sample_action_dist = np.bincount(actions, minlength=self.num_actions)
         next_action = self.player.best_response(sample_action_dist,
                                                 tie_breaking=self.tie_breaking)
