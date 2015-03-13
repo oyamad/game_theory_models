@@ -103,15 +103,12 @@ class KMR(BRD):
         self.epsilon = epsilon
 
     def play(self, current_action):
-        self.current_action_dist[current_action] -= 1
         if np.random.random() < self.epsilon:  # Mutation
+            self.current_action_dist[current_action] -= 1
             next_action = self.player.random_choice()
+            self.current_action_dist[next_action] += 1
         else:  # Best response
-            opponent_action_dist = self.current_action_dist
-            next_action = \
-                self.player.best_response(opponent_action_dist,
-                                          tie_breaking=self.tie_breaking)
-        self.current_action_dist[next_action] += 1
+            BRD.play(self, current_action)
 
 
 class SamplingBRD(BRD):
