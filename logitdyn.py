@@ -40,13 +40,16 @@ class LogitDynamics(object):
         self._set_choice_probs()
 
     def _set_choice_probs(self):
-        N = self.N
         for player in self.players:
             payoff_array_rotated = \
-                player.payoff_array.transpose(list(range(1, N)) + [0])
+                player.payoff_array.transpose(list(range(1, self.N)) + [0])
+            # Shift payoffs so that max = 0 for each opponent action profile
+            payoff_array_rotated -= \
+                payoff_array_rotated.max(axis=-1)[..., np.newaxis]
+            # cdfs left unnormalized
             player.logit_choice_cdfs = \
                 np.exp(payoff_array_rotated*self.beta).cumsum(axis=-1)
-            player.logit_choice_cdfs /= player.logit_choice_cdfs[..., [-1]]
+            # player.logit_choice_cdfs /= player.logit_choice_cdfs[..., [-1]]
 
     def set_init_actions(self, init_actions=None):
         if init_actions is None:
@@ -65,7 +68,7 @@ class LogitDynamics(object):
 
         cdf = self.players[i].logit_choice_cdfs[opponent_actions]
         random_value = np.random.random()
-        next_action = cdf.searchsorted(random_value, side='right')
+        next_action = cdf.searchsorted(random_value*cdf[-1], side='right')
         self.current_actions[i] = next_action
 
     def simulate(self, ts_length, init_actions=None):
