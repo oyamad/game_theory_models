@@ -120,8 +120,6 @@ Beware that in `payoff_array[h, k]`, `h` refers to the player's own
 action, while `k` refers to the opponent player's action.
 
 """
-from __future__ import division
-
 import numpy as np
 
 
