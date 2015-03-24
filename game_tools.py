@@ -447,7 +447,7 @@ class NormalFormGame(object):
         # Non-degenerate game with 2 or more players
         try:
             if len(action_profile) != self.N:
-                raise IndexError('index must be of length N')
+                raise IndexError('index must be of length {0}'.format(self.N))
         except TypeError:
             raise TypeError('index must be a tuple')
 
@@ -470,13 +470,15 @@ class NormalFormGame(object):
         # Non-degenerate game with 2 or more players
         try:
             if len(action_profile) != self.N:
-                raise IndexError('index must be of length N')
+                raise IndexError('index must be of length {0}'.format(self.N))
         except TypeError:
             raise TypeError('index must be a tuple')
 
         try:
             if len(payoff_profile) != self.N:
-                raise ValueError('value must be an array_like of length N')
+                raise ValueError(
+                    'value must be an array_like of length {0}'.format(self.N)
+                )
         except TypeError:
             raise TypeError('value must be a tuple')
 
