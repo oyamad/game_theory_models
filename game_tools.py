@@ -362,7 +362,7 @@ class NormalFormGame(object):
                 shape = data[i].payoff_array.shape
                 if not (
                     len(shape) == N and
-                    shape == tuple(shape_0[j] for j in np.arange(i, i+N) % N)
+                    shape == shape_0[i:] + shape_0[:i]
                 ):
                     raise ValueError(
                         'shapes of payoff arrays must be consistent'
@@ -385,7 +385,7 @@ class NormalFormGame(object):
                 # with payoff_arrays filled with zeros
                 # Payoff values set via __setitem__
                 self.players = tuple(
-                    Player(np.zeros(data[np.arange(i, i+N) % N]))
+                    Player(np.zeros(tuple(data[i:]) + tuple(data[:i])))
                     for i in range(N)
                 )
 
@@ -412,7 +412,8 @@ class NormalFormGame(object):
                     )
                 self.players = tuple(
                     Player(
-                        data.take(i, axis=-1).transpose(np.arange(i, i+N) % N)
+                        data.take(i, axis=-1).transpose(list(range(i, N)) + \
+                                                        list(range(i)))
                     ) for i in range(N)
                 )
 
@@ -444,10 +445,10 @@ class NormalFormGame(object):
         except TypeError:
             raise TypeError('index must be a tuple')
 
-        index = np.asarray(action_profile)
-        N = self.N
         payoff_profile = [
-            player.payoff_array[tuple(index[np.arange(i, i+N) % N])]
+            player.payoff_array[
+                tuple(action_profile[i:]) + tuple(action_profile[:i])
+            ]
             for i, player in enumerate(self.players)
         ]
 
@@ -466,11 +467,10 @@ class NormalFormGame(object):
         except TypeError:
             raise TypeError('value must be a tuple')
 
-        index = np.asarray(action_profile)
-        N = self.N
         for i, player in enumerate(self.players):
-            player.payoff_array[tuple(index[np.arange(i, i+N) % N])] = \
-                payoff_profile[i]
+            player.payoff_array[
+                tuple(action_profile[i:]) + tuple(action_profile[:i])
+            ] = payoff_profile[i]
 
     def is_nash(self, action_profile):
         """
@@ -497,12 +497,10 @@ class NormalFormGame(object):
                     return False
 
         elif self.N >= 3:
-            action_profile = np.asarray(action_profile)
-            N = self.N
-
             for i, player in enumerate(self.players):
                 own_action = action_profile[i]
-                opponents_actions = action_profile[np.arange(i+1, i+N) % N]
+                opponents_actions = \
+                    tuple(action_profile[i+1:]) + tuple(action_profile[:i])
 
                 if not player.is_best_response(own_action, opponents_actions):
                     return False
