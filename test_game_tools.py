@@ -235,6 +235,10 @@ class TestNormalFormGame_1p:
         ok_(self.g.N == 1)
         assert_array_equal(self.g.players[0].payoff_array, [0, 1, 1])
 
+    def test_getitem(self):
+        """Degenerate game: __getitem__"""
+        eq_(self.g[0], 0)
+
     def test_is_nash_pure(self):
         """Degenerate game: is_nash with pure action"""
         ok_(self.g.is_nash((1,)))
@@ -254,6 +258,14 @@ def test_normalformgame_input_action_sizes_1p():
         g.players[0].payoff_array,
         np.zeros(2)
     )
+
+def test_normalformgame_setitem_1p():
+    g = NormalFormGame(2)
+
+    eq_(g.N, 1)  # Number of players
+
+    g[0] = 10  # Set payoff 10 for action 0
+    eq_(g.players[0].payoff_array[0], 10)
 
 
 # Invalid inputs #

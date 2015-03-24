@@ -439,6 +439,12 @@ class NormalFormGame(object):
         return self.__repr__()
 
     def __getitem__(self, action_profile):
+        if self.N == 1:  # Degenerate game with 1 player
+            if not isinstance(action_profile, int):
+                raise TypeError('index must be an integer')
+            return self.players[0].payoff_array[action_profile]
+
+        # Non-degenerate game with 2 or more players
         try:
             if len(action_profile) != self.N:
                 raise IndexError('index must be of length N')
@@ -455,6 +461,13 @@ class NormalFormGame(object):
         return payoff_profile
 
     def __setitem__(self, action_profile, payoff_profile):
+        if self.N == 1:  # Degenerate game with 1 player
+            if not isinstance(action_profile, int):
+                raise TypeError('index must be an integer')
+            self.players[0].payoff_array[action_profile] = payoff_profile
+            return None
+
+        # Non-degenerate game with 2 or more players
         try:
             if len(action_profile) != self.N:
                 raise IndexError('index must be of length N')
