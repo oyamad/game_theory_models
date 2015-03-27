@@ -120,8 +120,6 @@ Beware that in `payoff_array[h, k]`, `h` refers to the player's own
 action, while `k` refers to the opponent player's action.
 
 """
-from __future__ import division
-
 import numpy as np
 
 
@@ -362,7 +360,7 @@ class NormalFormGame(object):
                 shape = data[i].payoff_array.shape
                 if not (
                     len(shape) == N and
-                    shape == tuple(shape_0[j] for j in np.arange(i, i+N) % N)
+                    shape == shape_0[i:] + shape_0[:i]
                 ):
                     raise ValueError(
                         'shapes of payoff arrays must be consistent'
@@ -385,7 +383,7 @@ class NormalFormGame(object):
                 # with payoff_arrays filled with zeros
                 # Payoff values set via __setitem__
                 self.players = tuple(
-                    Player(np.zeros(data[np.arange(i, i+N) % N]))
+                    Player(np.zeros(tuple(data[i:]) + tuple(data[:i])))
                     for i in range(N)
                 )
 
@@ -412,7 +410,8 @@ class NormalFormGame(object):
                     )
                 self.players = tuple(
                     Player(
-                        data.take(i, axis=-1).transpose(np.arange(i, i+N) % N)
+                        data.take(i, axis=-1).transpose(list(range(i, N)) + \
+                                                        list(range(i)))
                     ) for i in range(N)
                 )
 
@@ -438,39 +437,53 @@ class NormalFormGame(object):
         return self.__repr__()
 
     def __getitem__(self, action_profile):
+        if self.N == 1:  # Degenerate game with 1 player
+            if not isinstance(action_profile, int):
+                raise TypeError('index must be an integer')
+            return self.players[0].payoff_array[action_profile]
+
+        # Non-degenerate game with 2 or more players
         try:
             if len(action_profile) != self.N:
-                raise IndexError('index must be of length N')
+                raise IndexError('index must be of length {0}'.format(self.N))
         except TypeError:
             raise TypeError('index must be a tuple')
 
-        index = np.asarray(action_profile)
-        N = self.N
         payoff_profile = [
-            player.payoff_array[tuple(index[np.arange(i, i+N) % N])]
+            player.payoff_array[
+                tuple(action_profile[i:]) + tuple(action_profile[:i])
+            ]
             for i, player in enumerate(self.players)
         ]
 
         return payoff_profile
 
     def __setitem__(self, action_profile, payoff_profile):
+        if self.N == 1:  # Degenerate game with 1 player
+            if not isinstance(action_profile, int):
+                raise TypeError('index must be an integer')
+            self.players[0].payoff_array[action_profile] = payoff_profile
+            return None
+
+        # Non-degenerate game with 2 or more players
         try:
             if len(action_profile) != self.N:
-                raise IndexError('index must be of length N')
+                raise IndexError('index must be of length {0}'.format(self.N))
         except TypeError:
             raise TypeError('index must be a tuple')
 
         try:
             if len(payoff_profile) != self.N:
-                raise ValueError('value must be an array_like of length N')
+                raise ValueError(
+                    'value must be an array_like of length {0}'.format(self.N)
+                )
         except TypeError:
             raise TypeError('value must be a tuple')
 
-        index = np.asarray(action_profile)
-        N = self.N
         for i, player in enumerate(self.players):
-            player.payoff_array[tuple(index[np.arange(i, i+N) % N])] = \
-                payoff_profile[i]
+            player.payoff_array[
+                tuple(action_profile[i:]) + tuple(action_profile[:i])
+            ] = payoff_profile[i]
 
     def is_nash(self, action_profile):
         """
@@ -497,12 +510,10 @@ class NormalFormGame(object):
                     return False
 
         elif self.N >= 3:
-            action_profile = np.asarray(action_profile)
-            N = self.N
-
             for i, player in enumerate(self.players):
                 own_action = action_profile[i]
-                opponents_actions = action_profile[np.arange(i+1, i+N) % N]
+                opponents_actions = \
+                    tuple(action_profile[i+1:]) + tuple(action_profile[:i])
 
                 if not player.is_best_response(own_action, opponents_actions):
                     return False
