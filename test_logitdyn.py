@@ -73,7 +73,7 @@ class TestLogitDynamics:
 
 def test_set_choice_probs_with_asymmetric_payoff_matrix():
     bimatrix = np.array([[(4, 4), (1, 1), (0, 3)],
-                             [(3, 0), (1, 1), (2, 2)]])
+                         [(3, 0), (1, 1), (2, 2)]])
     beta = 1.0
     g = NormalFormGame(bimatrix)
     ld = LogitDynamics(g, beta=beta)
