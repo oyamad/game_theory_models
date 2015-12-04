@@ -8,6 +8,7 @@ Local interaction model.
 """
 from __future__ import division
 
+import numbers
 import numpy as np
 from scipy import sparse
 from game_tools import Player
@@ -96,7 +97,7 @@ class LocalInteraction(object):
         if player_ind is None:
             player_ind = list(range(self.N))
 
-        elif isinstance(player_ind, int):
+        elif isinstance(player_ind, numbers.Integral):
             player_ind = [player_ind]
 
         opponent_act_dists = \

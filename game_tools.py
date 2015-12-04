@@ -120,6 +120,7 @@ Beware that in `payoff_array[h, k]`, `h` refers to the player's own
 action, while `k` refers to the opponent player's action.
 
 """
+import numbers
 import numpy as np
 
 
@@ -194,7 +195,7 @@ class Player(object):
             with ndim=M-1 fixing the last player's action to be `action`.
 
             """
-            if isinstance(action, int):  # pure action
+            if isinstance(action, numbers.Integral):  # pure action
                 return payoff_array.take(action, axis=-1)
             else:  # mixed action
                 return payoff_array.dot(action)
@@ -235,7 +236,7 @@ class Player(object):
         payoff_vector = self.payoff_vector(opponents_actions)
         payoff_max = payoff_vector.max()
 
-        if isinstance(own_action, int):
+        if isinstance(own_action, numbers.Integral):
             return payoff_vector[own_action] >= payoff_max - self.tol
         else:
             return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
