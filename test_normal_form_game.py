@@ -1,8 +1,8 @@
 """
-Filename: test_game_tools.py
+Filename: test_normal_form_game.py
 Author: Daisuke Oyama
 
-Tests for game_tools.py
+Tests for normal_form_game.py
 
 """
 from __future__ import division
@@ -11,7 +11,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import eq_, ok_, raises
 
-from game_tools import Player, NormalFormGame, random_choice, pure2mixed
+from normal_form_game import Player, NormalFormGame, random_choice, pure2mixed
 
 
 # Player #
