@@ -259,11 +259,12 @@ class Player(object):
             object must be an integer (pure action) or an array of
             floats (mixed action).
 
-        tie_breaking : {'smallest', 'random', False}
+        tie_breaking : {'smallest', 'random', False},
+                       optional(default='smallest')
             Control how, or whether, to break a tie (see Returns for
             details).
 
-        payoff_perturbation : array_like(float)
+        payoff_perturbation : array_like(float), optional(default=None)
             Array of length equal to the number of actions of the player
             containing the values ("noises") to be added to the payoffs
             in determining the best response.
@@ -311,7 +312,7 @@ class Player(object):
 
         Parameters
         ----------
-        actions : array_like(int)
+        actions : array_like(int), optional(default=None)
             An array of integers representing pure actions.
 
         random_state : scalar(int) or np.random.RandomState,
@@ -439,7 +440,7 @@ class NormalFormGame(object):
                     )
                 self.players = tuple(
                     Player(
-                        data.take(i, axis=-1).transpose(list(range(i, N)) + \
+                        data.take(i, axis=-1).transpose(list(range(i, N)) +
                                                         list(range(i)))
                     ) for i in range(N)
                 )
