@@ -10,7 +10,7 @@ from __future__ import division
 
 import numpy as np
 from scipy import sparse
-from game_tools import Player
+from normal_form_game import Player
 
 
 class LocalInteraction(object):

@@ -1,9 +1,9 @@
 r"""
-Filename: game_tools.py
+Filename: normal_form_game.py
 
 Authors: Tomohiro Kusano, Daisuke Oyama
 
-Tools for Game Theory.
+Tools for normal form games.
 
 Definitions and Basic Concepts
 ------------------------------

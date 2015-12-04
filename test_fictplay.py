@@ -12,7 +12,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal_nulp
 from nose.tools import eq_, ok_, raises
 
 from fictplay import FictitiousPlay
-from game_tools import NormalFormGame
+from normal_form_game import NormalFormGame
 
 
 class TestFictitiousPlay_square_matrix:

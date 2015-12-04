@@ -9,7 +9,7 @@ Fictitious play model.
 from __future__ import division
 
 import numpy as np
-from game_tools import NormalFormGame, pure2mixed
+from normal_form_game import NormalFormGame, pure2mixed
 
 
 class FictitiousPlay(object):

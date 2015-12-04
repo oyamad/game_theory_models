@@ -12,7 +12,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal_nulp
 from nose.tools import eq_, ok_, raises
 
 from logitdyn import LogitDynamics
-from game_tools import NormalFormGame
+from normal_form_game import NormalFormGame
 
 
 class TestLogitDynamics:
