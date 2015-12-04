@@ -11,7 +11,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import eq_, ok_, raises
 
-from normal_form_game import Player, NormalFormGame, random_choice, pure2mixed
+from normal_form_game import Player, NormalFormGame, pure2mixed
 
 
 # Player #
@@ -41,6 +41,13 @@ class TestPlayer_1opponent:
         """best_response with tie_breaking='random'"""
         ok_(self.player.best_response([2/3, 1/3], tie_breaking='random')
             in [0, 1])
+
+        seed = 1234
+        br0 = self.player.best_response([2/3, 1/3], tie_breaking='random',
+                                        random_state=seed)
+        br1 = self.player.best_response([2/3, 1/3], tie_breaking='random',
+                                        random_state=seed)
+        eq_(br0, br1)
 
     def test_best_response_with_smallest_tie_breaking(self):
         """best_response with tie_breaking='smallest' (default)"""
@@ -89,6 +96,17 @@ class TestPlayer_2opponents:
                                              tie_breaking=False)),
             sorted([0, 1])
         )
+
+
+def test_random_choice():
+    n, m = 5, 4
+    payoff_matrix = np.zeros((n, m))
+    player = Player(payoff_matrix)
+
+    eq_(player.random_choice([0]), 0)
+
+    actions = list(range(player.num_actions))
+    ok_(player.random_choice() in actions)
 
 
 # NormalFormGame #
@@ -259,6 +277,7 @@ def test_normalformgame_input_action_sizes_1p():
         np.zeros(2)
     )
 
+
 def test_normalformgame_setitem_1p():
     g = NormalFormGame(2)
 
@@ -295,13 +314,6 @@ def test_normalformgame_invalid_input_payoff_profiles():
 
 
 # Utility functions #
-
-def test_random_choice():
-    eq_(random_choice([0]), 0)
-
-    actions = [0, 1, 2]
-    ok_(random_choice(actions) in actions)
-
 
 def test_pure2mixed():
     num_actions = 3

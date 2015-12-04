@@ -122,6 +122,7 @@ action, while `k` refers to the opponent player's action.
 """
 import numbers
 import numpy as np
+from util import check_random_state
 
 
 class Player(object):
@@ -242,7 +243,7 @@ class Player(object):
             return np.dot(own_action, payoff_vector) >= payoff_max - self.tol
 
     def best_response(self, opponents_actions, tie_breaking='smallest',
-                      payoff_perturbation=None):
+                      payoff_perturbation=None, random_state=None):
         """
         Return the best response action(s) to `opponents_actions`.
 
@@ -267,6 +268,13 @@ class Player(object):
             containing the values ("noises") to be added to the payoffs
             in determining the best response.
 
+        random_state : scalar(int) or np.random.RandomState,
+                       optional(default=None)
+            Random seed (integer) or np.random.RandomState instance to
+            set the initial state of the random number generator for
+            reproducibility. If None, a randomly initialized RandomState
+            is used. Relevant only when tie_breaking='random'.
+
         Returns
         -------
         scalar(int) or ndarray(int, ndim=1)
@@ -288,7 +296,8 @@ class Player(object):
             best_responses = \
                 np.where(payoff_vector >= payoff_vector.max() - self.tol)[0]
             if tie_breaking == 'random':
-                return random_choice(best_responses)
+                return self.random_choice(best_responses,
+                                          random_state=random_state)
             elif tie_breaking is False:
                 return best_responses
             else:
@@ -296,7 +305,7 @@ class Player(object):
                       "or False"
                 raise ValueError(msg)
 
-    def random_choice(self, actions=None):
+    def random_choice(self, actions=None, random_state=None):
         """
         Return a pure action chosen randomly from `actions`.
 
@@ -304,6 +313,13 @@ class Player(object):
         ----------
         actions : array_like(int)
             An array of integers representing pure actions.
+
+        random_state : scalar(int) or np.random.RandomState,
+                       optional(default=None)
+            Random seed (integer) or np.random.RandomState instance to
+            set the initial state of the random number generator for
+            reproducibility. If None, a randomly initialized RandomState
+            is used.
 
         Returns
         -------
@@ -313,10 +329,22 @@ class Player(object):
             action is chosen randomly from the player's all actions.
 
         """
-        if actions:
-            return random_choice(actions)
+        random_state = check_random_state(random_state)
+
+        if actions is not None:
+            n = len(actions)
         else:
-            return random_choice(range(self.num_actions))
+            n = self.num_actions
+
+        if n == 1:
+            idx = 0
+        else:
+            idx = random_state.randint(n)
+
+        if actions is not None:
+            return actions[idx]
+        else:
+            return idx
 
 
 class NormalFormGame(object):
@@ -524,27 +552,6 @@ class NormalFormGame(object):
                 return False
 
         return True
-
-
-def random_choice(actions):
-    """
-    Choose an action randomly from `actions`.
-
-    Parameters
-    ----------
-    actions : array_like(int)
-        An array of pure actions represented by nonnegative integers.
-
-    Returns
-    -------
-    scalar(int)
-        A pure action randomly chosen from `actions`.
-
-    """
-    if len(actions) == 1:
-        return actions[0]
-    else:
-        return np.random.choice(actions)
 
 
 def pure2mixed(num_actions, action):
