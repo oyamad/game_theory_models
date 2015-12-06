@@ -11,7 +11,9 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import eq_, ok_, raises
 
-from normal_form_game import Player, NormalFormGame, pure2mixed
+from normal_form_game import (
+    Player, NormalFormGame, pure2mixed, best_response_2p
+)
 
 
 # Player #
@@ -351,6 +353,29 @@ def test_pure2mixed():
     mixed_action = [1., 0., 0.]
 
     assert_array_equal(pure2mixed(num_actions, pure_action), mixed_action)
+
+
+# Numba jitted functions #
+
+def test_best_response_2p():
+    test_case0 = {
+        'payoff_array': np.array([[4, 0], [3, 2], [0, 3]]),
+        'mixed_actions':
+        [np.array([1, 0]), np.array([0.5, 0.5]), np.array([0, 1])],
+        'brs_expected': [0, 1, 2]
+    }
+    test_case1 = {
+        'payoff_array': np.zeros((2, 3)),
+        'mixed_actions': [np.array([1, 0, 0]), np.array([1/3, 1/3, 1/3])],
+        'brs_expected': [0, 0]
+    }
+
+    for test_case in [test_case0, test_case1]:
+        for mixed_action, br_expected in zip(test_case['mixed_actions'],
+                                             test_case['brs_expected']):
+            br_computed = \
+                best_response_2p(test_case['payoff_array'], mixed_action)
+            eq_(br_computed, br_expected)
 
 
 if __name__ == '__main__':

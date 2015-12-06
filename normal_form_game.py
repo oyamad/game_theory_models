@@ -124,6 +124,7 @@ action, while `k` refers to the opponent player's action.
 import re
 import numbers
 import numpy as np
+from numba import jit
 from util import check_random_state
 
 
@@ -615,3 +616,49 @@ def pure2mixed(num_actions, action):
     mixed_action = np.zeros(num_actions)
     mixed_action[action] = 1
     return mixed_action
+
+
+# Numba jitted functions #
+
+@jit(nopython=True)
+def best_response_2p(payoff_matrix, opponent_mixed_action):
+    """
+    Numba-optimized version of `Player.best_response` compilied in
+    nopython mode, specialized for 2-player games (where there is only
+    one opponent).
+
+    Return the best response action (with the smallest index if more
+    than one) to `opponent_mixed_action` under `payoff_matrix`.
+
+    Parameters
+    ----------
+    payoff_matrix : ndarray(float, ndim=2)
+        Payoff matrix.
+
+    opponent_mixed_action : ndarray(float, ndim=1)
+        Opponent's mixed action. Its length must be equal to
+        `payoff_matrix.shape[1]`.
+
+    Return
+    ------
+    scalar(int)
+        Best response action.
+
+    """
+    n, m = payoff_matrix.shape
+
+    best_response = 0
+    payoff_0 = 0
+    for b in range(m):
+        payoff_0 += payoff_matrix[0, b] * opponent_mixed_action[b]
+    payoff_max = payoff_0
+
+    for a in range(1, n):
+        payoff = 0
+        for b in range(m):
+            payoff += payoff_matrix[a, b] * opponent_mixed_action[b]
+        if payoff > payoff_max:
+            payoff_max = payoff
+            best_response = a
+
+    return best_response
