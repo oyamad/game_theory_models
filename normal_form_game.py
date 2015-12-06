@@ -477,7 +477,7 @@ class NormalFormGame(object):
 
     def __getitem__(self, action_profile):
         if self.N == 1:  # Trivial game with 1 player
-            if not isinstance(action_profile, int):
+            if not isinstance(action_profile, numbers.Integral):
                 raise TypeError('index must be an integer')
             return self.players[0].payoff_array[action_profile]
 
@@ -499,7 +499,7 @@ class NormalFormGame(object):
 
     def __setitem__(self, action_profile, payoff_profile):
         if self.N == 1:  # Trivial game with 1 player
-            if not isinstance(action_profile, int):
+            if not isinstance(action_profile, numbers.Integral):
                 raise TypeError('index must be an integer')
             self.players[0].payoff_array[action_profile] = payoff_profile
             return None
