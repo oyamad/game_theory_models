@@ -63,12 +63,12 @@ The first is to pass an array of payoffs for all the players:
 
 >>> matching_pennies_bimatrix = [[(1, -1), (-1, 1)], [(-1, 1), (1, -1)]]
 >>> g = NormalFormGame(matching_pennies_bimatrix)
->>> g.players[0].payoff_array
-array([[ 1, -1],
-       [-1,  1]])
->>> g.players[1].payoff_array
-array([[-1,  1],
-       [ 1, -1]])
+>>> g.players[0]
+Player([[ 1, -1],
+        [-1,  1]])
+>>> g.players[1]
+Player([[-1,  1],
+        [ 1, -1]])
 
 If a square matrix (2-dimensional array) is given, then it is considered
 to be a symmetric two-player game:
@@ -76,8 +76,8 @@ to be a symmetric two-player game:
 >>> coordination_game_matrix = [[4, 0], [3, 2]]
 >>> g = NormalFormGame(coordination_game_matrix)
 >>> g
-2-player NormalFormGame with payoff bimatrix:
-[[[4, 4], [0, 3]], [[3, 0], [2, 2]]]
+NormalFormGame([[[4, 4],  [0, 3]],
+                [[3, 0],  [2, 2]]])
 
 The second is to specify the sizes of the action sets of the players,
 which gives a `NormalFormGame` instance filled with payoff zeros, and
@@ -85,14 +85,14 @@ then set the payoff values to each entry:
 
 >>> g = NormalFormGame((2, 2))
 >>> g
-2-player NormalFormGame with payoff bimatrix:
-[[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]
+NormalFormGame([[[ 0.,  0.],  [ 0.,  0.]],
+                [[ 0.,  0.],  [ 0.,  0.]]])
 >>> g[0, 0] = 1, 1
 >>> g[0, 1] = -2, 3
 >>> g[1, 0] = 3, -2
 >>> g
-2-player NormalFormGame with payoff bimatrix:
-[[[1.0, 1.0], [-2.0, 3.0]], [[3.0, -2.0], [0.0, 0.0]]]
+NormalFormGame([[[ 1.,  1.],  [-2.,  3.]],
+                [[ 3., -2.],  [ 0.,  0.]]])
 
 The third is to pass an array of `Player` instances, as explained in the
 next section.
@@ -102,10 +102,11 @@ Creating a Player
 
 A `Player` instance is created by passing a payoff array:
 
+>>> from normal_form_game import Player
 >>> player0 = Player([[3, 1], [0, 2]])
 >>> player0
-Player in a 2-player normal form game with payoff matrix:
-[[3, 1], [0, 2]]
+Player([[3, 1],
+        [0, 2]])
 
 Passing an array of `Player` instances is the third way to create a
 `NormalFormGame` instance.
@@ -113,13 +114,14 @@ Passing an array of `Player` instances is the third way to create a
 >>> player1 = Player([[2, 0], [1, 3]])
 >>> g = NormalFormGame((player0, player1))
 >>> g
-2-player NormalFormGame with payoff bimatrix:
-[[[3, 2], [1, 1]], [[0, 0], [2, 3]]]
+NormalFormGame([[[3, 2],  [1, 1]],
+                [[0, 0],  [2, 3]]])
 
 Beware that in `payoff_array[h, k]`, `h` refers to the player's own
 action, while `k` refers to the opponent player's action.
 
 """
+import re
 import numbers
 import numpy as np
 from util import check_random_state
@@ -161,18 +163,16 @@ class Player(object):
         self.tol = 1e-8
 
     def __repr__(self):
-        N = self.num_opponents + 1
-        msg = "Player in a {0}-player normal form game".format(N)
-
-        if N == 2:
-            matrix_str = \
-                " with payoff matrix:\n{0}".format(self.payoff_array.tolist())
-            msg += matrix_str
-
-        return msg
+        s = _payoff_array2string(self.payoff_array,
+                                 class_name=self.__class__.__name__)
+        return s
 
     def __str__(self):
-        return self.__repr__()
+        N = self.num_opponents + 1
+        s = 'Player in a {N}-player normal form game'.format(N=N)
+        s += ' with payoff array:\n'
+        s += np.array2string(self.payoff_array, separator=', ')
+        return s
 
     def payoff_vector(self, opponents_actions):
         """
@@ -209,7 +209,7 @@ class Player(object):
             for i in reversed(range(self.num_opponents)):
                 payoff_vector = \
                     reduce_last_player(payoff_vector, opponents_actions[i])
-        else:  # Degenerate case with self.num_opponents == 0
+        else:  # Trivial case with self.num_opponents == 0
             payoff_vector = self.payoff_array
 
         return payoff_vector
@@ -403,7 +403,7 @@ class NormalFormGame(object):
             data = np.asarray(data)
 
             if data.ndim == 0:  # data represents action size
-                # Degenerate game consisting of one player
+                # Trivial game consisting of one player
                 N = 1
                 self.players = (Player(np.zeros(data)),)
 
@@ -450,29 +450,38 @@ class NormalFormGame(object):
             player.num_actions for player in self.players
         )
 
+    @property
+    def payoff_profile_array(self):
+        N = self.N
+        # To infer the dype
+        dtype = np.dtype(np.sum([player.payoff_array.take(0)
+                                 for player in self.players]))
+        payoff_profile_array = \
+            np.empty(self.players[0].payoff_array.shape + (N,), dtype=dtype)
+        for i, player in enumerate(self.players):
+            payoff_profile_array[..., i] = \
+                player.payoff_array.transpose(list(range(N-i, N)) +
+                                              list(range(N-i)))
+        return payoff_profile_array
+
     def __repr__(self):
-        msg = "{0}-player NormalFormGame".format(self.N)
-
-        if self.N == 2:
-            P0 = self.players[0].payoff_array
-            P1 = self.players[1].payoff_array
-            bimatrix = np.dstack((P0, P1.T))
-            bimatrix_str = \
-                " with payoff bimatrix:\n{0}".format(bimatrix.tolist())
-            msg += bimatrix_str
-
-        return msg
+        s = _payoff_profile_array2string(self.payoff_profile_array,
+                                         class_name=self.__class__.__name__)
+        return s
 
     def __str__(self):
-        return self.__repr__()
+        s = '{N}-player NormalFormGame'.format(N=self.N)
+        s += ' with payoff profile array:\n'
+        s += _payoff_profile_array2string(self.payoff_profile_array)
+        return s
 
     def __getitem__(self, action_profile):
-        if self.N == 1:  # Degenerate game with 1 player
+        if self.N == 1:  # Trivial game with 1 player
             if not isinstance(action_profile, int):
                 raise TypeError('index must be an integer')
             return self.players[0].payoff_array[action_profile]
 
-        # Non-degenerate game with 2 or more players
+        # Non-trivial game with 2 or more players
         try:
             if len(action_profile) != self.N:
                 raise IndexError('index must be of length {0}'.format(self.N))
@@ -489,13 +498,13 @@ class NormalFormGame(object):
         return payoff_profile
 
     def __setitem__(self, action_profile, payoff_profile):
-        if self.N == 1:  # Degenerate game with 1 player
+        if self.N == 1:  # Trivial game with 1 player
             if not isinstance(action_profile, int):
                 raise TypeError('index must be an integer')
             self.players[0].payoff_array[action_profile] = payoff_profile
             return None
 
-        # Non-degenerate game with 2 or more players
+        # Non-trivial game with 2 or more players
         try:
             if len(action_profile) != self.N:
                 raise IndexError('index must be of length {0}'.format(self.N))
@@ -548,11 +557,41 @@ class NormalFormGame(object):
                 if not player.is_best_response(own_action, opponents_actions):
                     return False
 
-        else:  # Degenerate case with self.N == 1
+        else:  # Trivial case with self.N == 1
             if not self.players[0].is_best_response(action_profile[0], None):
                 return False
 
         return True
+
+
+def _payoff_array2string(payoff_array, class_name=None):
+    prefix, suffix = '', ''
+    if class_name is not None:
+        prefix = class_name + '('
+        suffix = ')'
+    s = np.array2string(payoff_array, separator=', ', prefix=prefix)
+    return prefix + s + suffix
+
+
+def _payoff_profile_array2string(payoff_profile_array, class_name=None):
+    s = np.array2string(payoff_profile_array, separator=', ')
+
+    # Remove one linebreak
+    s = re.sub(r'(\n+)', lambda x: x.group(0)[0:-1], s)
+
+    if class_name is not None:
+        prefix = class_name + '('
+        next_line_prefix = ' ' * len(prefix)
+        suffix = ')'
+        l = s.splitlines()
+        l[0] = prefix + l[0]
+        for i in range(1, len(l)):
+            if l[i]:
+                l[i] = next_line_prefix + l[i]
+        l[-1] += suffix
+        s = '\n'.join(l)
+
+    return s
 
 
 def pure2mixed(num_actions, action):

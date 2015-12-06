@@ -134,8 +134,8 @@ class TestNormalFormGame_Asym2p:
 
     def setUp(self):
         """Setup a NormalFormGame instance"""
-        matching_pennies_bimatrix = [[( 1, -1), (-1,  1)],
-                                     [(-1,  1), ( 1, -1)]]
+        matching_pennies_bimatrix = [[(1, -1), (-1, 1)],
+                                     [(-1, 1), (1, -1)]]
         self.g = NormalFormGame(matching_pennies_bimatrix)
 
     def test_getitem(self):
@@ -217,10 +217,10 @@ def test_normalformgame_constant_payoffs():
     ok_(g.is_nash((1, 1)))
 
 
-# Degenerate cases with one player #
+# Trivial cases with one player #
 
 class TestPlayer_0opponents:
-    """Test for degenerate Player with no opponent player"""
+    """Test for trivial Player with no opponent player"""
 
     def setUp(self):
         """Setup a Player instance"""
@@ -228,20 +228,20 @@ class TestPlayer_0opponents:
         self.player = Player(payoffs)
 
     def test_payoff_vector(self):
-        """Degenerate player: payoff_vector"""
+        """Trivial player: payoff_vector"""
         assert_array_equal(self.player.payoff_vector(None), [0, 1])
 
     def test_is_best_response(self):
-        """Degenerate player: is_best_response"""
+        """Trivial player: is_best_response"""
         ok_(self.player.is_best_response(1, None))
 
     def test_best_response(self):
-        """Degenerate player: best_response"""
+        """Trivial player: best_response"""
         eq_(self.player.best_response(None), 1)
 
 
 class TestNormalFormGame_1p:
-    """Test for degenerate NormalFormGame with a single player"""
+    """Test for trivial NormalFormGame with a single player"""
 
     def setUp(self):
         """Setup a NormalFormGame instance"""
@@ -249,21 +249,21 @@ class TestNormalFormGame_1p:
         self.g = NormalFormGame(data)
 
     def test_construction(self):
-        """Degenerate game: construction"""
+        """Trivial game: construction"""
         ok_(self.g.N == 1)
         assert_array_equal(self.g.players[0].payoff_array, [0, 1, 1])
 
     def test_getitem(self):
-        """Degenerate game: __getitem__"""
+        """Trivial game: __getitem__"""
         eq_(self.g[0], 0)
 
     def test_is_nash_pure(self):
-        """Degenerate game: is_nash with pure action"""
+        """Trivial game: is_nash with pure action"""
         ok_(self.g.is_nash((1,)))
         ok_(not self.g.is_nash((0,)))
 
     def test_is_nash_mixed(self):
-        """Degenerate game: is_nash with mixed action"""
+        """Trivial game: is_nash with mixed action"""
         ok_(self.g.is_nash(([0, 1/2, 1/2],)))
 
 
@@ -285,6 +285,36 @@ def test_normalformgame_setitem_1p():
 
     g[0] = 10  # Set payoff 10 for action 0
     eq_(g.players[0].payoff_array[0], 10)
+
+
+# Test __repre__ #
+
+def test_player_repr():
+    nums_actions = (2, 3, 4)
+    payoff_arrays = [
+        np.arange(np.prod(nums_actions[0:i])).reshape(nums_actions[0:i])
+        for i in range(1, len(nums_actions)+1)
+    ]
+    players = [Player(payoff_array) for payoff_array in payoff_arrays]
+
+    for player in players:
+        player_new = eval(repr(player))
+        assert_array_equal(player_new.payoff_array, player.payoff_array)
+
+
+def test_normalformgame_repr():
+    nums_actions = (2, 3, 4)
+    for N in range(1, len(nums_actions)+1):
+        payoff_arrays = [
+            np.arange(np.prod(nums_actions[0:N])).reshape(nums_actions[i:N] +
+                                                          nums_actions[0:i])
+            for i in range(N)
+        ]
+        players = [Player(payoff_array) for payoff_array in payoff_arrays]
+        g = NormalFormGame(players)
+        g_new = eval(repr(g))
+        for player_new, payoff_array in zip(g_new.players, payoff_arrays):
+            assert_array_equal(player_new.payoff_array, payoff_array)
 
 
 # Invalid inputs #
