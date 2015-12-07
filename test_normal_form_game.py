@@ -219,6 +219,21 @@ def test_normalformgame_constant_payoffs():
     ok_(g.is_nash((1, 1)))
 
 
+def test_normalformgame_payoff_profile_array():
+    nums_actions = (2, 3, 4)
+    for N in range(1, len(nums_actions)+1):
+        payoff_arrays = [
+            np.arange(np.prod(nums_actions[0:N])).reshape(nums_actions[i:N] +
+                                                          nums_actions[0:i])
+            for i in range(N)
+        ]
+        players = [Player(payoff_array) for payoff_array in payoff_arrays]
+        g = NormalFormGame(players)
+        g_new = NormalFormGame(g.payoff_profile_array)
+        for player_new, payoff_array in zip(g_new.players, payoff_arrays):
+            assert_array_equal(player_new.payoff_array, payoff_array)
+
+
 # Trivial cases with one player #
 
 class TestPlayer_0opponents:
@@ -287,36 +302,6 @@ def test_normalformgame_setitem_1p():
 
     g[0] = 10  # Set payoff 10 for action 0
     eq_(g.players[0].payoff_array[0], 10)
-
-
-# Test __repre__ #
-
-def test_player_repr():
-    nums_actions = (2, 3, 4)
-    payoff_arrays = [
-        np.arange(np.prod(nums_actions[0:i])).reshape(nums_actions[0:i])
-        for i in range(1, len(nums_actions)+1)
-    ]
-    players = [Player(payoff_array) for payoff_array in payoff_arrays]
-
-    for player in players:
-        player_new = eval(repr(player))
-        assert_array_equal(player_new.payoff_array, player.payoff_array)
-
-
-def test_normalformgame_repr():
-    nums_actions = (2, 3, 4)
-    for N in range(1, len(nums_actions)+1):
-        payoff_arrays = [
-            np.arange(np.prod(nums_actions[0:N])).reshape(nums_actions[i:N] +
-                                                          nums_actions[0:i])
-            for i in range(N)
-        ]
-        players = [Player(payoff_array) for payoff_array in payoff_arrays]
-        g = NormalFormGame(players)
-        g_new = eval(repr(g))
-        for player_new, payoff_array in zip(g_new.players, payoff_arrays):
-            assert_array_equal(player_new.payoff_array, payoff_array)
 
 
 # Invalid inputs #

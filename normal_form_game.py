@@ -63,36 +63,41 @@ The first is to pass an array of payoffs for all the players:
 
 >>> matching_pennies_bimatrix = [[(1, -1), (-1, 1)], [(-1, 1), (1, -1)]]
 >>> g = NormalFormGame(matching_pennies_bimatrix)
->>> g.players[0]
-Player([[ 1, -1],
-        [-1,  1]])
->>> g.players[1]
-Player([[-1,  1],
-        [ 1, -1]])
+>>> print(g.players[0])
+Player in a 2-player normal form game with payoff array:
+[[ 1, -1],
+ [-1,  1]]
+>>> print(g.players[1])
+Player in a 2-player normal form game with payoff array:
+[[-1,  1],
+ [ 1, -1]]
 
 If a square matrix (2-dimensional array) is given, then it is considered
 to be a symmetric two-player game:
 
 >>> coordination_game_matrix = [[4, 0], [3, 2]]
 >>> g = NormalFormGame(coordination_game_matrix)
->>> g
-NormalFormGame([[[4, 4],  [0, 3]],
-                [[3, 0],  [2, 2]]])
+>>> print(g)
+2-player NormalFormGame with payoff profile array:
+[[[4, 4],  [0, 3]],
+ [[3, 0],  [2, 2]]]
 
 The second is to specify the sizes of the action sets of the players,
 which gives a `NormalFormGame` instance filled with payoff zeros, and
 then set the payoff values to each entry:
 
 >>> g = NormalFormGame((2, 2))
->>> g
-NormalFormGame([[[ 0.,  0.],  [ 0.,  0.]],
-                [[ 0.,  0.],  [ 0.,  0.]]])
+>>> print(g)
+2-player NormalFormGame with payoff profile array:
+[[[ 0.,  0.],  [ 0.,  0.]],
+ [[ 0.,  0.],  [ 0.,  0.]]]
 >>> g[0, 0] = 1, 1
 >>> g[0, 1] = -2, 3
 >>> g[1, 0] = 3, -2
->>> g
-NormalFormGame([[[ 1.,  1.],  [-2.,  3.]],
-                [[ 3., -2.],  [ 0.,  0.]]])
+>>> print(g)
+2-player NormalFormGame with payoff profile array:
+[[[ 1.,  1.],  [-2.,  3.]],
+ [[ 3., -2.],  [ 0.,  0.]]]
 
 The third is to pass an array of `Player` instances, as explained in the
 next section.
@@ -102,20 +107,23 @@ Creating a Player
 
 A `Player` instance is created by passing a payoff array:
 
->>> from normal_form_game import Player
 >>> player0 = Player([[3, 1], [0, 2]])
->>> player0
-Player([[3, 1],
-        [0, 2]])
+>>> player0.payoff_array
+array([[3, 1],
+       [0, 2]])
 
 Passing an array of `Player` instances is the third way to create a
 `NormalFormGame` instance.
 
 >>> player1 = Player([[2, 0], [1, 3]])
+>>> player1.payoff_array
+array([[2, 0],
+       [1, 3]])
 >>> g = NormalFormGame((player0, player1))
->>> g
-NormalFormGame([[[3, 2],  [1, 1]],
-                [[0, 0],  [2, 3]]])
+>>> print(g)
+2-player NormalFormGame with payoff profile array:
+[[[3, 2],  [1, 1]],
+ [[0, 0],  [2, 3]]]
 
 Beware that in `payoff_array[h, k]`, `h` refers to the player's own
 action, while `k` refers to the opponent player's action.
@@ -164,13 +172,12 @@ class Player(object):
         self.tol = 1e-8
 
     def __repr__(self):
-        s = _payoff_array2string(self.payoff_array,
-                                 class_name=self.__class__.__name__)
+        N = self.num_opponents + 1
+        s = 'Player in a {N}-player normal form game'.format(N=N)
         return s
 
     def __str__(self):
-        N = self.num_opponents + 1
-        s = 'Player in a {N}-player normal form game'.format(N=N)
+        s = self.__repr__()
         s += ' with payoff array:\n'
         s += np.array2string(self.payoff_array, separator=', ')
         return s
@@ -466,12 +473,11 @@ class NormalFormGame(object):
         return payoff_profile_array
 
     def __repr__(self):
-        s = _payoff_profile_array2string(self.payoff_profile_array,
-                                         class_name=self.__class__.__name__)
+        s = '{N}-player NormalFormGame'.format(N=self.N)
         return s
 
     def __str__(self):
-        s = '{N}-player NormalFormGame'.format(N=self.N)
+        s = self.__repr__()
         s += ' with payoff profile array:\n'
         s += _payoff_profile_array2string(self.payoff_profile_array)
         return s
