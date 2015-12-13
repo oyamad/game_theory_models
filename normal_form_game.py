@@ -461,9 +461,8 @@ class NormalFormGame(object):
     @property
     def payoff_profile_array(self):
         N = self.N
-        # To infer the dype
-        dtype = np.dtype(np.sum([player.payoff_array.take(0)
-                                 for player in self.players]))
+        dtype = \
+            np.result_type(*(player.payoff_array for player in self.players))
         payoff_profile_array = \
             np.empty(self.players[0].payoff_array.shape + (N,), dtype=dtype)
         for i, player in enumerate(self.players):
