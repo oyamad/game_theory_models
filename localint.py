@@ -55,12 +55,12 @@ class LocalInteraction(object):
         M, N = self.adj_matrix.shape
         if N != M:
             raise ValueError('adjacency matrix must be square')
-        self.N = N  # Number of players
+        self.N = N
 
         A = np.asarray(payoff_matrix)
         if A.ndim != 2 or A.shape[0] != A.shape[1]:
             raise ValueError('payoff matrix must be square')
-        self.num_actions = A.shape[0]  # Number of actions
+        self.num_actions = A.shape[0]
 
         self.players = [Player(A) for i in range(self.N)]
         self.tie_breaking = 'smallest'
@@ -77,6 +77,9 @@ class LocalInteraction(object):
         return self._current_actions
 
     def set_init_actions(self, init_actions=None):
+        """
+        This method randomly sets `current_actions` if `init_actions` is None.
+        """
         if init_actions is None:
             init_actions = np.random.randint(self.num_actions, size=self.N)
 
@@ -84,7 +87,8 @@ class LocalInteraction(object):
 
     def play(self, player_ind=None):
         """
-        The method used to proceed the game by one period.
+        The method used to proceed the game by one period. Players take their
+        best response strategies given the adjacency matrix.
 
         Parameters
         ----------
@@ -114,7 +118,18 @@ class LocalInteraction(object):
 
     def simulate(self, ts_length, init_actions=None, revision='simultaneous'):
         """
-        Return array of ts_length arrays of N actions
+        Return `ts_length` arrays of players' actions in each period. Each
+        columnsvcorresponds to respective players. The updates of best response
+        strategies are done simultaneously or sequentially.
+
+        Parameters
+        ----------
+        ts_length : scalar(int)
+            The number of period you want to play the game in a simulation.
+
+        revision : {'simultaneous', 'sequential'},
+            optional(default='simultaneous')
+            Rervision type used in updating best response strategies.
 
         """
         actions_sequence = np.empty((ts_length, self.N), dtype=int)
@@ -130,7 +145,17 @@ class LocalInteraction(object):
     def simulate_iter(self, ts_length, init_actions=None,
                       revision='simultaneous'):
         """
-        Iterator version of `simulate`
+        Iterator version of `simulate` method.
+
+        Parameters
+        ----------
+        ts_length : scalar(int)
+            The number of period you want to play the game in a simulation.
+
+        revision : {'simultaneous', 'sequential'},
+            optional(default='simultaneous')
+            Rervision type used in updating best response strategies.
+
 
         """
         self.set_init_actions(init_actions=init_actions)
@@ -146,13 +171,31 @@ class LocalInteraction(object):
             yield self.current_actions
             self.play(player_ind=player_ind_sequence[t])
 
-    def replicate(self, T, num_reps, init_actions=None,
+    def replicate(self, ts_length, num_reps, init_actions=None,
                   revision='simultaneous'):
+        """
+        This method returns `num_reps` arrays of the simulation results, which
+        are the actions in last periods. In each simulation, the game is played
+        'ts_length' period.
+
+        Parameters
+        ----------
+        ts_length : scalar(int)
+            The number of period in each simulation.
+
+        num_reps : scalar(int)
+            The number of replicated results.
+
+        revision : {'simultaneous', 'sequential'},
+            optional(default='simultaneous')
+            Rervision type used in updating best response strategies.
+
+        """
         out = np.empty((num_reps, self.N), dtype=int)
 
         for j in range(num_reps):
             actions_sequence_iter = \
-                self.simulate_iter(T+1, init_actions=init_actions,
+                self.simulate_iter(ts_length+1, init_actions=init_actions,
                                    revision=revision)
             for actions in actions_sequence_iter:
                 x = actions
